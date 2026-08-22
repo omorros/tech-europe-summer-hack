@@ -1,0 +1,78 @@
+name: backend
+
+# Keys-free checks only. Everything here must pass on a fresh clone with no
+# API keys, which is exactly the property that makes the demo fallback
+# trustworthy: if CI can run the pipeline end to end with nothing configured,
+# so can a laptop with a dead network.
+on:
+  push:
+    branches: [main]
+    paths: ['backend/**', '.github/workflows/backend.yml']
+  pull_request:
+    paths: ['backend/**', '.github/workflows/backend.yml']
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Sync dependencies
+        run: uv sync
+
+      - name: Compile every module
+        run: uv run python -m compileall -q building intelligence shared scripts
+
+      - name: Intelligence lane, end to end with no API keys
+        run: uv run python -m intelligence.selftest
+
+      - name: Guard the interfaces the other lanes depend on
+        run: |
+          uv run python - <<'PY'
+          import inspect
+          from intelligence import make_briefing, on_transcript, plan_route
+          from building import (build_room_graph, find_approach, find_property,
+                                reconstruct)
+          from shared import bus
+
+          # PRD section 3: these signatures are locked. Changing one means
+          # telling the other two lanes in the same minute, so break the build
+          # rather than let it slip through silently.
+          for fn in (on_transcript, plan_route, make_briefing,
+                     find_approach, find_property, build_room_graph, reconstruct):
+              assert inspect.iscoroutinefunction(fn), f"{fn.__name__} must be async"
+
+          assert list(inspect.signature(on_transcript).parameters) == ["fragment"]
+          assert list(inspect.signature(plan_route).parameters) == [
+              "graph", "victim", "hazards", "approach"]
+          assert list(inspect.signature(make_briefing).parameters) == ["incident"]
+          assert list(inspect.signature(find_approach).parameters) == ["address"]
+          assert list(inspect.signature(find_property).parameters) == ["address"]
+          assert list(inspect.signature(build_room_graph).parameters) == ["artifacts"]
+
+          assert callable(bus.emit) and callable(bus.subscribe)
+          print("locked interfaces OK")
+          PY
+
+      - name: The golden-property cache must survive a clone
+        run: |
+          uv run python - <<'PY'
+          from intelligence.golden import GOLDEN_ARTIFACTS, GOLDEN_ROOM_GRAPH, IS_REAL
+          from intelligence.config import resolve_static
+
+          assert IS_REAL, "committed cache missing — the demo fallback would not travel"
+          missing = [p["url"] for p in GOLDEN_ARTIFACTS["photos"]
+                     if not resolve_static(p["url"])]
+          assert not missing, f"cached artifacts reference files not in the repo: {missing}"
+          assert GOLDEN_ROOM_GRAPH.get("floorplan_width"), "room graph must publish its coordinate space"
+          print(f"golden cache OK: {len(GOLDEN_ARTIFACTS['photos'])} photos on disk")
+          PY

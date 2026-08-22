@@ -42,6 +42,30 @@ npx wrangler deploy
 # so fal's webhooks come back to the right origin
 ```
 
+## CI/CD
+
+`.github/workflows/worker.yml` runs typecheck + tests on every PR touching
+`worker/`, and deploys on merge to `main` — but only if the tests passed. A
+broken walkthrough renderer is worse than an old one during a demo.
+
+**A repo admin must add two secrets** (Settings → Secrets and variables →
+Actions). Contributors with push access cannot; the workflow fails with an
+explicit message rather than a wrangler stack trace if they are missing.
+
+| Secret | Where it comes from |
+|---|---|
+| `CLOUDFLARE_API_TOKEN` | dash.cloudflare.com → My Profile → API Tokens → Create Token → **Edit Cloudflare Workers** template. Scope it to the one account; it needs Workers Scripts:Edit and Workers KV Storage:Edit. |
+| `CLOUDFLARE_ACCOUNT_ID` | dash.cloudflare.com → Workers & Pages → right-hand sidebar, or `npx wrangler whoami` |
+
+Optionally add a repo **variable** (not secret) `WORKER_URL` pointing at the
+deployed URL, and the workflow will health-check the deployment after every
+release.
+
+`FAL_KEY` and `WORKER_TOKEN` are **Worker** secrets set once with
+`wrangler secret put`. They are deliberately *not* GitHub secrets and are not
+redeployed by CI — the deploy step only ships code, so a rotated fal key never
+needs a commit.
+
 ```bash
 npm run dev        # local
 npm test           # leg planning + prompt tests, no network
