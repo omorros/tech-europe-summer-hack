@@ -1,0 +1,16 @@
+name = "sizeup-ui"
+main = "worker.ts"
+compatibility_date = "2026-08-22"
+
+[assets]
+directory = "./out"
+binding = "ASSETS"
+# next export writes 404.html. SPA handling would answer a mistyped URL with
+# the address-entry page and a 200, which reads as a working screen.
+not_found_handling = "404-page"
+run_worker_first = ["/ws/*", "/incident", "/incident/*", "/health", "/static/*", "/radio"]
+
+[vars]
+# Public HTTPS origin of the FastAPI process. A trycloudflare.com tunnel URL.
+# Empty = the UI still serves; API calls 503 until you set this or pass ?backend=
+BACKEND_ORIGIN = ""

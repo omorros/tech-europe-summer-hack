@@ -65,6 +65,29 @@ plan to get the direction of travel right — say which way the camera turns and
 it passes. Reference the start frame as @Image1 and the end frame as @Image2. \
 Output only the prompt text."""
 
+SYSTEM_CONTINUOUS = f"""You direct a single unbroken first-person walkthrough clip that \
+helps a fire crew orient inside a building before they enter it. You will be given \
+everything known about one real property and asked to write the prompt for the WHOLE \
+walk, from the entrance to the room the fire started in, as one continuous take.
+
+Hard rules, in priority order:
+1. {HOUSE_IS_EMPTY}
+2. The first and last frames are REAL PHOTOGRAPHS of this property and are fixed. \
+The rooms in between are NOT photographed, so name them and describe passing through \
+them, but never invent rooms, doors or staircases the floor plan does not support.
+3. Body-worn camera point of view, walking pace, steady forward motion. It is ONE \
+SHOT: no cuts, no cross-fades, no jumps between rooms, no drone or crane moves, no \
+slow motion. The camera never stops or teleports; it walks the whole way.
+4. No text, captions, watermarks, timestamps or UI overlays.
+5. Smoke builds as the walk goes deeper: clear at the entrance, thin haze in the \
+middle, heavy smoke and firelight only as it reaches the room the fire is in. Flames \
+appear nowhere else — a model painting fire into the wrong room would mislead a crew.
+
+Write ONE paragraph, 90-130 words, present tense, concrete and visual. Walk the route \
+in order and say which way the camera turns and what it passes at each stage. Reference \
+the opening frame as @Image1 and the final frame as @Image2. Output only the prompt \
+text."""
+
 
 def _fal():
     import fal_client
@@ -126,13 +149,13 @@ def build_context(*, address: str, approach: Approach | None, graph: RoomGraph,
     return "\n".join(lines)
 
 
-async def _ask_pioneer(context: str, leg: str) -> str | None:
+async def _ask_pioneer(system: str, context: str, leg: str) -> str | None:
     from . import pioneer
     if not pioneer.api_key():
         return None
     try:
         text = await pioneer.achat(
-            [{"role": "system", "content": SYSTEM},
+            [{"role": "system", "content": system},
              {"role": "user", "content": f"{context}\n\nTHIS LEG: {leg}"}],
             model=os.environ.get("PIONEER_BRIEFING_MODEL", pioneer.GEMMA_MODEL),
             max_tokens=400,
@@ -142,7 +165,8 @@ async def _ask_pioneer(context: str, leg: str) -> str | None:
         return None
 
 
-async def _ask_openai(context: str, leg: str, plan_image: str | None) -> str | None:
+async def _ask_openai(system: str, context: str, leg: str,
+                      plan_image: str | None) -> str | None:
     key = os.environ.get("OPENAI_API_KEY")
     if not key:
         return None
@@ -163,7 +187,7 @@ async def _ask_openai(context: str, leg: str, plan_image: str | None) -> str | N
 
         response = await client.chat.completions.create(
             model=os.environ.get("SIZEUP_OPENAI_MODEL", "gpt-5"),
-            messages=[{"role": "system", "content": SYSTEM},
+            messages=[{"role": "system", "content": system},
                       {"role": "user", "content": content}],
         )
         return (response.choices[0].message.content or "").strip() or None
@@ -171,13 +195,14 @@ async def _ask_openai(context: str, leg: str, plan_image: str | None) -> str | N
         return None
 
 
-async def _ask_fal_vision(context: str, leg: str, plan_image: str | None) -> str | None:
+async def _ask_fal_vision(system: str, context: str, leg: str,
+                          plan_image: str | None) -> str | None:
     """The only backend that can actually look at the floor plan."""
     if not os.environ.get("FAL_KEY"):
         return None
     try:
         arguments: dict[str, Any] = {
-            "prompt": f"{SYSTEM}\n\n{context}\n\nTHIS LEG: {leg}",
+            "prompt": f"{system}\n\n{context}\n\nTHIS LEG: {leg}",
             "model": FAL_VISION_MODEL,
         }
         endpoint = "fal-ai/any-llm"
@@ -190,6 +215,61 @@ async def _ask_fal_vision(context: str, leg: str, plan_image: str | None) -> str
         return (result.get("output") or "").strip() or None
     except Exception:
         return None
+
+
+async def _author(system: str, context: str, brief: str,
+                  plan_image: str | None) -> str | None:
+    """First backend that answers wins; None means fall back to the template."""
+    text = (await _ask_openai(system, context, brief, plan_image)
+            or await _ask_pioneer(system, context, brief)
+            or await _ask_fal_vision(system, context, brief, plan_image))
+    if not text:
+        return None
+    # Belt and braces: the model may drop rule 1, and it is the rule that
+    # put a firefighter in our first render.
+    if "deserted" not in text.lower() and "no people" not in text.lower():
+        text = f"{text} {HOUSE_IS_EMPTY}"
+    return text
+
+
+async def direct_continuous(*, address: str, approach: Approach | None, graph: RoomGraph,
+                            artifacts: Artifacts, hazards: list[str],
+                            walk: list[dict],
+                            fire_room: str | None = None) -> list[str] | None:
+    """One prompt for the whole walk, entrance to the seat of the fire.
+
+    Returned as a one-item list because that is what the Worker reads: in
+    continuous mode the route is a single leg, so `leg_prompts[0]` is the
+    prompt for the entire clip.
+    """
+    if len(walk) < 2:
+        return None
+
+    context = build_context(
+        address=address, approach=approach, graph=graph, artifacts=artifacts,
+        hazards=hazards, route_rooms=[w["room_id"] for w in walk],
+    )
+    plan_image = _as_data_uri(artifacts.get("floorplan_url", "") or "")
+
+    first, last = walk[0], walk[-1]
+    between = [w["name"] for w in walk[1:-1]]
+    path = f" passing the {', '.join(between)}" if between else ""
+    fire = last["name"] if (fire_room is None or last["room_id"] == fire_room) else None
+    ending = (f" The walk ENDS in the {fire}, the room the fire started in: "
+              f"heavy smoke and firelight ahead as the camera arrives."
+              if fire else "")
+
+    floors = [w["floor"] for w in walk if w.get("floor") is not None]
+    stairs = (" The walk climbs a staircase partway through."
+              if floors and max(floors) > min(floors) else "")
+
+    brief = (f"the entire walk as ONE continuous shot: from {first['name']} "
+             f"(@Image1){path}, to {last['name']} (@Image2)."
+             f"{stairs}{ending} Only the first and last rooms are photographed; "
+             f"the rest must be described from the floor plan.")
+
+    text = await _author(SYSTEM_CONTINUOUS, context, brief, plan_image)
+    return [text] if text else None
 
 
 async def direct_legs(*, address: str, approach: Approach | None, graph: RoomGraph,
@@ -224,15 +304,9 @@ async def direct_legs(*, address: str, approach: Approach | None, graph: RoomGra
         leg = (f"leg {i + 1} of {len(walk) - 1}: from {a['name']} (@Image1) "
                f"to {b['name']} (@Image2).{note}")
 
-        text = (await _ask_openai(context, leg, plan_image)
-                or await _ask_pioneer(context, leg)
-                or await _ask_fal_vision(context, leg, plan_image))
+        text = await _author(SYSTEM, context, leg, plan_image)
         if not text:
             return None
-        # Belt and braces: the model may drop rule 1, and it is the rule that
-        # put a firefighter in our first render.
-        if "deserted" not in text.lower() and "no people" not in text.lower():
-            text = f"{text} {HOUSE_IS_EMPTY}"
         prompts.append(text)
 
     return prompts

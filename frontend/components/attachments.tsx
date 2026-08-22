@@ -6,6 +6,7 @@ import { Fact } from "./Sheet";
 import { FloorPlan } from "./FloorPlan";
 import { ElevationPlate, PlotPlate } from "./plates";
 import { RoomsGallery } from "./RoomsGallery";
+import { StaticImage } from "./StaticImage";
 import type { IncidentState } from "@/lib/useIncident";
 
 export interface Attachment {
@@ -71,13 +72,21 @@ export function useAttachments(state: IncidentState): Attachment[] {
             <>
               <div className="approach-plates">
                 {approach.coverage ? (
-                  <ElevationPlate heading={approach.streetview[0]?.heading ?? 0} />
+                  <StaticImage
+                    url={approach.streetview[0]?.url}
+                    alt={`Street View, heading ${approach.streetview[0]?.heading ?? 0}`}
+                    fallback={<ElevationPlate heading={approach.streetview[0]?.heading ?? 0} />}
+                  />
                 ) : (
                   <p style={{ margin: 0, color: "var(--red)" }}>
                     No Street View coverage at this address. Working from the plot only.
                   </p>
                 )}
-                <PlotPlate />
+                <StaticImage
+                  url={approach.satellite_url}
+                  alt="Satellite plot"
+                  fallback={<PlotPlate />}
+                />
               </div>
               <hr className="rule" />
               <Fact label="Building">{approach.building_type}</Fact>

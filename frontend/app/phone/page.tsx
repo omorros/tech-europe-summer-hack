@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { emitRemote, now } from "@/lib/bus";
+import { consumeBackendParam } from "@/lib/config";
+import { connectPhone, type PhoneSocket } from "@/lib/phone";
 import { DEMO_ADDRESS } from "@/lib/timeline";
 import { SyntheticStamp } from "@/components/plates";
 
 type CallState = "idle" | "dialling" | "connected" | "ended";
 
-/** Cue cards for the person holding the handset on stage. */
 const SCRIPT = [
   "Fire! There's a fire!",
   `It's ${DEMO_ADDRESS.replace(",", " —")}`,
@@ -20,7 +21,37 @@ export default function PhonePage() {
   const [call, setCall] = useState<CallState>("idle");
   const [cue, setCue] = useState(0);
   const [seconds, setSeconds] = useState(0);
+  const [live, setLive] = useState(false);
   const callId = useRef("999-0417");
+  const phone = useRef<PhoneSocket | null>(null);
+
+  /** One cue, either up the socket or across the tabs on this machine. */
+  const say = useCallback((index: number) => {
+    const text = SCRIPT[index];
+    if (phone.current) {
+      phone.current.send({ type: "transcript", seq: index, text, is_final: true });
+      return;
+    }
+    emitRemote({
+      type: "transcript.fragment",
+      ts: now(),
+      payload: {
+        call_id: callId.current,
+        seq: index,
+        text,
+        is_final: true,
+        speaker: "caller",
+      },
+    });
+  }, []);
+
+  useEffect(() => {
+    consumeBackendParam();
+    return () => {
+      phone.current?.close();
+      phone.current = null;
+    };
+  }, []);
 
   useEffect(() => {
     if (call !== "connected") return;
@@ -30,30 +61,60 @@ export default function PhonePage() {
 
   useEffect(() => {
     if (call !== "dialling") return;
+    let cancelled = false;
     const id = window.setTimeout(() => {
-      setCall("connected");
-      setSeconds(0);
-      setCue(0);
-      // This is the signal the console listens for. When /ws/phone is live it
-      // becomes the real call.incoming from the server.
-      emitRemote({
-        type: "call.incoming",
-        ts: now(),
-        payload: { call_id: callId.current },
-      });
+      void (async () => {
+        const socket = await connectPhone(() => setLive(false));
+        if (cancelled) {
+          socket?.close();
+          return;
+        }
+        if (socket) {
+          phone.current = socket;
+          socket.send({ type: "call.start", address: DEMO_ADDRESS });
+          socket.send({ type: "transcript", seq: 0, text: SCRIPT[0], is_final: true });
+          setLive(true);
+        } else {
+          setLive(false);
+          emitRemote({
+            type: "call.incoming",
+            ts: now(),
+            payload: { call_id: callId.current },
+          });
+          emitRemote({
+            type: "call.answered",
+            ts: now(),
+            payload: { call_id: callId.current },
+          });
+          say(0);
+        }
+        setCall("connected");
+        setSeconds(0);
+        setCue(0);
+      })();
     }, 1600);
-    return () => window.clearTimeout(id);
-  }, [call]);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(id);
+    };
+  }, [call, say]);
 
   const end = () => {
     setCall("ended");
-    emitRemote({ type: "call.ended", ts: now(), payload: { call_id: callId.current } });
+    if (phone.current) {
+      phone.current.send({ type: "call.end" });
+      phone.current.close();
+      phone.current = null;
+    } else {
+      emitRemote({ type: "call.ended", ts: now(), payload: { call_id: callId.current } });
+    }
   };
 
   return (
     <main className="phone">
       <div className="stamp stamp-bar stamp-bar--steel">
         <span style={{ flex: 1 }}>SizeUp · Caller</span>
+        <span>{live ? "live" : "local"}</span>
         <SyntheticStamp paper={false} />
       </div>
 
@@ -64,7 +125,7 @@ export default function PhonePage() {
               Emergency
             </h1>
             <p style={{ color: "var(--steel-dim)", margin: 0 }}>
-              Tap to place the mock 999 call. The dispatch console picks it up and
+              Tap to place the 999 call. The dispatch console picks it up and
               starts the run.
             </p>
           </>
@@ -125,7 +186,11 @@ export default function PhonePage() {
               className="control control--solid"
               style={{ width: "100%", padding: "1.1em" }}
               disabled={cue >= SCRIPT.length - 1}
-              onClick={() => setCue((value) => Math.min(value + 1, SCRIPT.length - 1))}
+              onClick={() => {
+                const next = Math.min(cue + 1, SCRIPT.length - 1);
+                setCue(next);
+                say(next);
+              }}
             >
               Next line
             </button>
@@ -143,6 +208,7 @@ export default function PhonePage() {
               setCall("idle");
               setSeconds(0);
               setCue(0);
+              setLive(false);
             }}
           >
             Reset handset

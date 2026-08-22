@@ -306,9 +306,18 @@ body {
   color: var(--carbon);
 }
 
-.fact__value {
-  color: var(--ink);
-  overflow-wrap: anywhere;
+.fact--sourced {
+  grid-template-columns: 13ch 1fr 8ch;
+}
+
+.fact__source {
+  font-family: var(--font-stamp), system-ui, sans-serif;
+  font-weight: 700;
+  font-stretch: 85%;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--carbon);
+  text-align: right;
 }
 
 .tick {
@@ -525,6 +534,19 @@ body {
   gap: 0.4rem;
   padding: 0.9rem 1.2rem 1rem;
   border-bottom: 1px solid var(--edge);
+}
+
+/* Fireground traffic typed straight into the record: it replans the route and
+   rewrites the crew card, the same as anything the caller says. */
+.radio {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  margin-top: 0.2rem;
+}
+
+.radio .field {
+  flex: 1;
 }
 
 /* The four call events and eight stage events, in one line at record size. */

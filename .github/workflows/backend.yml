@@ -30,10 +30,13 @@ jobs:
         run: uv sync
 
       - name: Compile every module
-        run: uv run python -m compileall -q building intelligence shared scripts
+        run: uv run python -m compileall -q building intelligence shared scripts call server.py
 
       - name: Intelligence lane, end to end with no API keys
         run: uv run python -m intelligence.selftest
+
+      - name: Transport, end to end with no API keys
+        run: uv run python -m call.selftest
 
       - name: Guard the interfaces the other lanes depend on
         run: |
@@ -60,6 +63,10 @@ jobs:
           assert list(inspect.signature(build_room_graph).parameters) == ["artifacts"]
 
           assert callable(bus.emit) and callable(bus.subscribe)
+          from server import app
+          paths = {route.path for route in app.routes}
+          for needed in ("/health", "/incident", "/ws/console", "/ws/phone"):
+              assert needed in paths, f"missing {needed}"
           print("locked interfaces OK")
           PY
 

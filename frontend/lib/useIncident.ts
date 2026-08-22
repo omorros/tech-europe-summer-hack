@@ -203,12 +203,20 @@ function reduce(state: IncidentState, event: BusEvent): IncidentState {
         text: `Route planned — entry via ${event.payload.entry_point}`,
       });
 
-    case "briefing.ready":
-      return print({ ...state, briefing: event.payload }, {
+    case "briefing.ready": {
+      // The backend emits the card, then re-emits it with the coverage block
+      // attached. Merge rather than replace so the second frame cannot drop
+      // detail the first one carried, and only print the roll line once.
+      const briefing = state.briefing
+        ? { ...state.briefing, ...event.payload }
+        : event.payload;
+      if (state.briefing) return { ...state, briefing };
+      return print({ ...state, briefing }, {
         ts: event.ts,
         kind: "system",
         text: `Crew brief ready — ${event.payload.duration_s}s`,
       });
+    }
 
     case "radio.update":
       return print(state, { ts: event.ts, kind: "radio", text: event.payload.text });

@@ -44,9 +44,9 @@ Every panel must render a truthful pending state without its event ever arriving
 
 Coordinate space for every pin, polygon and waypoint is floor-plan pixel coordinates, origin top-left.
 
-Current scope: UI only, with placeholders and mocked events. A scripted timeline replays a fabricated call against the real event shapes; `lib/bus.ts` is a same-device BroadcastChannel with the `/ws/console` swap point marked. Real audio, transcription and lane data land against the same shapes.
+Current scope: the console renders live bus events from FastAPI (`/ws/console`, `POST /incident`) and falls back to the scripted timeline when the backend is down. Placeholder plates remain until a surface carries a real `url`.
 
-Three contract deltas are agreed but not yet rendered, and are the first work of the merge: the route's kerb waypoint carries `room_id: null`; the floor plan's coordinate space comes from `floorplan_width` / `floorplan_height` on `rooms.graph` rather than a hardcoded viewBox; and the brief has no video or audio by default — it is an ordered playlist of walkthrough legs plus `lines` carrying a `source` per fact (`call` / `street` / `listing` / `plan`), which must be shown because the four layers are not equally trustworthy. `frontend/README.md` carries the detail; `frontend-integration.md` is the backend side of the same seam.
+The three contract deltas from the merge are rendered: the route's kerb waypoint carries `room_id: null`; the floor plan's coordinate space comes from `floorplan_width` / `floorplan_height` on `rooms.graph`; the brief is `lines` with a `source` per fact (`call` / `street` / `listing` / `plan`), plus walkthrough `coverage` so a short clip is not read as a complete tour. `frontend/README.md` carries the detail; `frontend-integration.md` is the backend side of the same seam.
 
 ## Brand Commitments
 

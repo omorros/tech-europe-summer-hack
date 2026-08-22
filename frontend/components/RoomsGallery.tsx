@@ -2,7 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { PhotoPlate } from "./plates";
+import { StaticImage } from "./StaticImage";
 import type { Photo } from "@/lib/types";
+
+function RoomImage({ photo }: { photo: Photo }) {
+  return (
+    <StaticImage
+      url={photo.url}
+      alt={photo.caption || photo.id}
+      fallback={<PhotoPlate caption={photo.caption} />}
+    />
+  );
+}
 
 /** Thumbnails until you pick one; then that room fills the sheet. */
 export function RoomsGallery({ photos }: { photos: Photo[] }) {
@@ -24,7 +35,7 @@ export function RoomsGallery({ photos }: { photos: Photo[] }) {
         <button type="button" className="room-open__back" onClick={() => setOpenId(null)}>
           ← All rooms
         </button>
-        <PhotoPlate caption={open.caption} />
+        <RoomImage photo={open} />
         <figcaption className="room-open__caption">{open.caption}</figcaption>
       </figure>
     );
@@ -39,7 +50,7 @@ export function RoomsGallery({ photos }: { photos: Photo[] }) {
           className="room"
           onClick={() => setOpenId(photo.id)}
         >
-          <PhotoPlate caption={photo.caption} />
+          <RoomImage photo={photo} />
           <span className="room__caption">{photo.caption}</span>
         </button>
       ))}

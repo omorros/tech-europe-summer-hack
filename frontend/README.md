@@ -4,12 +4,15 @@ Companion to `../frontend-integration.md` (Bill's notes, backend → frontend).
 This is the other direction: what exists on the frontend today, where the
 seams are, and exactly what must change when the real lanes land.
 
-**Everything on screen right now is synthetic.** No backend call is made
-anywhere. A scripted timeline replays a fabricated 999 call against the real
-event shapes. Every surface stamps it SYNTHETIC.
+The UI talks to FastAPI over `/ws/console` and `POST /incident`. If the
+backend is down, a scripted timeline still replays a fabricated 999 call
+against the same event shapes (press **R**). Surfaces that are still
+fabricated stamp SYNTHETIC; that stamp drops the moment a surface carries
+live lane data.
 
 ```bash
 cd frontend && npm install && npm run dev     # http://localhost:3000
+# FastAPI must be on :8000, or set NEXT_PUBLIC_BACKEND_URL
 ```
 
 ---
@@ -38,38 +41,30 @@ stage.
 
 ---
 
-## 2. The one seam you need: `lib/bus.ts`
+## 2. The one seam: `lib/bus.ts`
 
-Everything the UI renders arrives as a `BusEvent`. Today that is a
-`BroadcastChannel` so two tabs on one machine can talk. **Replace the body of
-`connectBus` with the WebSocket and every call site stays untouched.**
+Everything the UI renders arrives as a `BusEvent`. `connectBus` opens
+`/ws/console` on the FastAPI process (same-origin on the Cloudflare Worker,
+`localhost:8000` in `next dev`). BroadcastChannel remains as a same-device
+fallback when the socket is down.
 
 ```ts
-// lib/bus.ts — today
 export function connectBus(handler: (event: BusEvent) => void): () => void
+export function subscribeBusStatus(handler: (open: boolean) => void): () => void
 ```
 
-Sketch of the swap, using Bill's env vars and origin-derived scheme:
+### The two envelope fields, and why the socket can drop safely
 
-```ts
-export function connectBus(handler: (event: BusEvent) => void): () => void {
-  const base = process.env.NEXT_PUBLIC_WS_URL
-    ?? `${location.protocol === "https:" ? "wss://" : "ws://"}${location.host}`;
-  const socket = new WebSocket(`${base}/ws/console`);
-  socket.onmessage = (message) => handler(JSON.parse(message.data) as BusEvent);
-  return () => socket.close();
-}
-```
+The server adds `seq` (monotonic per process) and `boot` (which process) to the
+locked `{type, ts, payload}`. On reconnect it replays its recent history, so
+without dedupe a dropped socket would print the whole call a second time.
+`bus.ts` keeps the highest `seq` it has applied and ignores anything at or
+below it, and forgets that number when `boot` changes, because a restarted
+backend counts from one again.
 
-Known ceiling of the current implementation, written in the file: a
-`BroadcastChannel` is same-origin **and same-device**. Driving `/console`
-from a real phone over the hotspot needs the real socket. Read
-`../frontend-integration.md` §1 before choosing where things run — there is a
-secure-context vs mixed-content trap that breaks both obvious setups.
-
-`/phone` currently emits `call.incoming` / `call.ended` through `emitRemote`.
-Once `/ws/phone` exists, that becomes mic capture over the socket and the
-server owns `call_id`.
+Reconnect backs off 0.5s → 10s. `subscribeBusStatus` is what drives the
+console's **Live bus / Local replay** line, so that label tracks the actual
+socket rather than the last thing that happened to work.
 
 ### Where the events land
 
@@ -83,90 +78,68 @@ the provider's `start()`.
 
 ---
 
-## 3. What must change when the real lanes land
+## 3. Contract deltas (now rendered)
 
-These are contract deltas from `../frontend-integration.md` that the frontend
-does **not** handle yet. Ordered by how badly they break.
+These were the first work of the merge. How they land:
 
 ### 3.1 `Route.waypoints[0].room_id` is `null` (the kerb)
 
-`lib/types.ts:88` says `room_id: string`. It must be `string | null`.
+`lib/types.ts` says `room_id: string | null`. `FloorPlan` keeps the kerb off
+the floor split (it is not floor 0), draws the segment from the plan edge to
+the entry door, and labels **Kerb** and **Entry** as two marks.
 
-`components/FloorPlan.tsx:49` does
-`graph.rooms.find(r => r.id === roomId)?.floor ?? 0` — a null kerb silently
-becomes floor 0. It will not crash; it will draw the wrong thing. The kerb
-segment should be drawn from the plan edge to the entry door, not treated as
-a room on the ground floor.
+### 3.2 The floor plan's coordinate space comes from the graph
 
-### 3.2 The floor plan's coordinate space is hardcoded
+When `rooms.graph` publishes `floorplan_width` / `floorplan_height`, the
+viewBox is `0 0 width height`. The fabricated demo timeline still uses the
+old hardcoded viewBox because that plan has no published size.
 
-`components/FloorPlan.tsx:7` — `const VIEW = "10 60 980 420"`. That is sized
-to the fabricated demo plan.
+### 3.3 The brief is a playlist, not a talking head
 
-`rooms.graph` publishes `floorplan_width` / `floorplan_height`. Use them:
-`viewBox={`0 0 ${graph.floorplan_width} ${graph.floorplan_height}`}`. Add
-those two fields to `RoomGraph` in `lib/types.ts` first. **Do not guess the
-coordinate space** — every pin, polygon and waypoint is in floor-plan pixels,
-origin top-left, against that image.
-
-### 3.3 The brief is a playlist, not a video, and has no audio
-
-`Briefing.video_url` arrives as an **empty string** by design — no talking
-head, because a crew cannot hear narration over sirens. Today `/video`
-renders `ReconstructionFilm`, an authored SVG placeholder.
-
-The real thing is the Worker's `legs` array: an ordered playlist, entrance
-first. Play back to back advancing on `ended`, **muted**, with the current
-leg's `narration` overlaid large and high-contrast. Hold the last frame when
-the clips run out. `status: "PARTIAL"` means some legs failed — render what
-worked and say so.
-
-Also render the `coverage` block ("1 of 4 rooms photographed"). Estate agents
-photograph rooms they are selling, not the hallways a route walks through, so
-a short walkthrough is normal and looks like a complete tour if you stay
-quiet about it.
+`Briefing.video_url` is an empty string by design. `/video` plays Worker
+`legs` (muted, advance on `ended`) when they exist; otherwise it renders
+`briefing.lines`. `PARTIAL` is labelled. The `coverage` block ("1 of 4 rooms
+photographed") is shown so a short walkthrough does not read as a complete
+tour.
 
 ### 3.4 `briefing.lines` is the primary briefing surface
 
-Not `script`. Each line carries a `source`: `call` | `street` | `listing` |
-`plan`. **Show the source** — the four layers are not equally trustworthy and
-the whole honesty argument rests on a crew being able to tell them apart.
-`call` and `street` strongest; `listing` and `plan` visibly weaker.
-
-Add `lines` to the `Briefing` type. The existing `.fact` row (label + value)
-is the right device; the source needs a third, quieter column.
+Each line is a `.fact` row with a quieter `source` column (`call` | `street`
+| `listing` | `plan`). `listing` and `plan` render weaker than `call`/`street`.
 
 ### 3.5 The `extract` stage fires on every transcript fragment
 
-`components/StatusLine.tsx` counts stage states. Unthrottled, the badge will
-strobe during a live call. Throttle to ~250ms or render `extract` as a count
-rather than a state.
-
-That message also carries the Pioneer latency (`"GLiNER2 fine-tuned · 41ms"`)
-— that number is worth putting on screen for the Fastino judges, and it names
-the fallback keyword extractor if Pioneer dies mid-call.
+`StatusLine` prints the Pioneer latency string (`GLiNER2 fine-tuned · 41ms`)
+through a leading-edge throttle: the first message shows at once, then at most
+one update per 250ms. A plain debounce would stay blank for exactly as long as
+partials kept arriving, which is when the badge matters most.
 
 ---
 
-## 4. Placeholder imagery — the replace list
+## 4. Imagery: real files, plates as the fallback
 
-Every image is an authored SVG drawn in the record's own grammar rather than
-a grey box, so the composition is real while the pixels are not. All live in
-`components/plates.tsx`, which opens with this list:
+Every image is an authored SVG drawn in the record's own grammar rather than a
+grey box, so the composition is real while the pixels are not. Those plates are
+now the **fallback**, not the default: `components/StaticImage.tsx` draws the
+file from the backend's `/static` mount and falls back to the plate.
 
-| Component | Replace with |
+| Plate | Now backs |
 |---|---|
 | `ElevationPlate` | `approach.streetview[n].url` (Street View Static) |
 | `PlotPlate` | `approach.satellite_url` (Maps Static) |
 | `PhotoPlate` | `artifacts.photos[n].url` (listing gallery) |
 | `ReconstructionFilm` | the Worker's walkthrough legs (§3.3) |
 
-`FloorPlan.tsx` is **not** a placeholder — it renders the real `RoomGraph`,
-route and pins. Only its viewBox is wrong (§3.2).
+The fallback is not theoretical: `backend/.gitignore` excludes
+`static/approach/`, so on a fresh clone the cached `approach.json` points at
+Street View frames that are not on disk. Those 404s used to render as the
+browser's broken-image icon on a projected console.
 
-Keep `SyntheticStamp` on anything still fabricated, and remove it the moment
-a surface carries real data. It is load-bearing for the honesty argument, not
-decoration.
+`FloorPlan.tsx` is **not** a placeholder — it renders the real `RoomGraph`,
+route and pins, in the graph's own coordinate space (§3.2).
+
+`SyntheticStamp` stays on anything still fabricated and is hidden whenever the
+console is live. It is load-bearing for the honesty argument, not decoration.
 
 ---
 
@@ -185,6 +158,11 @@ directly; `Escape` closes.
 **Pending states never spin.** Each attachment states what is missing and
 which lane owes it ("The agent is still inside the listing"). A panel must
 render truthfully when its event never arrives — no lane may block another.
+
+**The radio field is an input to the run, not a note.** What you type goes up
+the console socket (or `POST /radio` if it is down), through the same extractor
+as the call, and replans the route and rewrites the crew card. Try "flashover
+in the kitchen, rear exit blocked".
 
 **The record shows extracted lines plus whatever is printing right now.**
 That second half matters: transcript partials print in carbon grey and strike
@@ -215,9 +193,17 @@ Radius is 0 everywhere. Circles mean something specific when they appear.
 
 ```bash
 # frontend/.env.local
-NEXT_PUBLIC_BACKEND_URL=https://<tunnel>.trycloudflare.com   # or http://localhost:8000
-NEXT_PUBLIC_WS_URL=wss://<tunnel>.trycloudflare.com          # or ws://localhost:8000
+NEXT_PUBLIC_BACKEND_URL=http://localhost:8000   # or https://<tunnel>.trycloudflare.com
 ```
+
+One variable. The WebSocket URL is derived from it (`http` → `ws`), and an
+empty value means same-origin, which is what the Cloudflare build wants — the
+Worker proxies to `BACKEND_ORIGIN`. A localhost value baked into a laptop build
+is ignored on a deployed hostname, otherwise every deploy from a dev machine
+would ship a console pointing at the operator's own laptop.
+
+`?backend=https://…` overrides both and persists in localStorage, which is the
+quickest way to point a phone on the venue wifi at your tunnel.
 
 The Worker token stays in the **backend's** env. It must never reach a
 `NEXT_PUBLIC_` var — that ships it to every client.
@@ -241,15 +227,21 @@ components/
   LogRoll.tsx             the incident record
   FloorPlan.tsx           real RoomGraph renderer
   RoomsGallery.tsx        room thumbnails → one room fills the sheet
+  StaticImage.tsx         a backend file, with a plate for when it 404s
   StatusLine.tsx          call state + stage states in one line
   Sheet.tsx               the Fact row
-  plates.tsx              authored placeholder imagery + replace list
+  plates.tsx              authored imagery, used as fallback
 lib/
   types.ts                mirrors backend/shared/types.py — locked
-  bus.ts                  THE SWAP POINT
+  bus.ts                  the console socket: dedupe, reconnect, BroadcastChannel
+  config.ts               where the backend is (env, ?backend=, same-origin)
+  api.ts                  POST /incident and POST /radio, both with deadlines
+  phone.ts                the handset's /ws/phone leg
   incident-context.tsx    provider
   useIncident.ts          reducer over BusEvent
   useRunner.ts            schedules the mock timeline
   useAutoFollow.ts        arrival-driven panel opening
   timeline.ts             the fake call — keep behind R, or delete
+worker.ts                 Cloudflare Worker: serves out/, proxies to the backend
+wrangler.toml             asset + proxy config for the sizeup-ui Worker
 ```

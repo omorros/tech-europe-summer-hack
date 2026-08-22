@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { startIncident } from "@/lib/api";
 import { connectBus } from "@/lib/bus";
+import { consumeBackendParam } from "@/lib/config";
 import { DEMO_ADDRESS } from "@/lib/timeline";
 import { SyntheticStamp } from "@/components/plates";
 
@@ -10,19 +12,41 @@ export default function AddressPage() {
   const router = useRouter();
   const [address, setAddress] = useState("");
   const [heard, setHeard] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const leaving = useRef<number | null>(null);
 
-  // A mock call on /phone fills this field and opens the console, exactly the
-  // way the ADDRESS entity will when the extractor is live.
-  useEffect(
-    () =>
-      connectBus((event) => {
-        if (event.type !== "call.incoming") return;
-        setHeard(true);
-        setAddress(DEMO_ADDRESS);
-        window.setTimeout(() => router.push("/console"), 900);
-      }),
-    [router],
-  );
+  useEffect(() => {
+    consumeBackendParam();
+    const stop = connectBus((event) => {
+      if (event.type !== "call.incoming") return;
+      setHeard(true);
+      setAddress((current) => current || DEMO_ADDRESS);
+      leaving.current = window.setTimeout(() => router.push("/console"), 900);
+    });
+    return () => {
+      stop();
+      if (leaving.current !== null) window.clearTimeout(leaving.current);
+    };
+  }, [router]);
+
+  async function submit(event: React.FormEvent) {
+    event.preventDefault();
+    const value = address.trim();
+    if (!value || busy) return;
+    setBusy(true);
+    setError(null);
+    const remote = await startIncident({ address: value });
+    if (remote) {
+      router.push("/console");
+      return;
+    }
+    // Say what happened before the screen changes, or the operator watches a
+    // recorded call at a different address with no idea why.
+    setBusy(false);
+    setError("Backend not reachable — opening the recorded run instead.");
+    leaving.current = window.setTimeout(() => router.push("/console?run=1"), 1400);
+  }
 
   return (
     <main className="entry">
@@ -43,13 +67,7 @@ export default function AddressPage() {
               <br />
               emergency
             </h1>
-            <form
-              onSubmit={(event) => {
-                event.preventDefault();
-                if (!address.trim()) return;
-                router.push("/console?run=1");
-              }}
-            >
+            <form onSubmit={submit}>
               <label className="sr-only" htmlFor="address">
                 Address of the emergency
               </label>
@@ -59,7 +77,7 @@ export default function AddressPage() {
                 autoFocus
                 autoComplete="off"
                 value={address}
-                placeholder="House number, street, town, postcode"
+                placeholder="14 Deerdale Road, London SE24 0AW"
                 onChange={(event) => setAddress(event.target.value)}
               />
               <div
@@ -71,8 +89,8 @@ export default function AddressPage() {
                   flexWrap: "wrap",
                 }}
               >
-                <button type="submit" className="control control--ink" disabled={!address.trim()}>
-                  Open console
+                <button type="submit" className="control control--ink" disabled={!address.trim() || busy}>
+                  {busy ? "Opening…" : "Open console"}
                 </button>
                 <span style={{ color: "var(--carbon)" }}>
                   {heard
@@ -80,14 +98,17 @@ export default function AddressPage() {
                     : "Or take the call — open /phone on a handset."}
                 </span>
               </div>
+              {error && (
+                <p style={{ color: "var(--red)", margin: "0.8rem 0 0" }}>{error}</p>
+              )}
             </form>
           </div>
         </div>
 
         <p className="entry__note">
-          Everything on the console is synthetic while the lanes are being wired:
-          the call, the property and the imagery are placeholders against the
-          real event shapes.
+          Typed address hits the FastAPI bus. Cached golden properties assemble
+          from disk; anything else runs the live lanes. Press R on the console
+          to replay if the backend is down.
         </p>
       </div>
     </main>
