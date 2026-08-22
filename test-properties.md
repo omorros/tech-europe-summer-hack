@@ -17,7 +17,7 @@ call; the pipeline does the rest.
 - Links: [Rightmove listing](https://www.rightmove.co.uk/house-prices/details/f9be2480-5595-46fe-a178-094e0a330986) | [Street View](https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=51.4597725,-0.1138011) | [Google Maps](https://www.google.com/maps/search/?api=1&query=22%20Kellett%20Road%2C%20London%20SW2%201EB)
 - Files: [floor plan](backend/static/artifacts/22-kellett-road-london-sw2-1eb/floorplan.png) | [room graph](backend/static/artifacts/22-kellett-road-london-sw2-1eb/roomgraph-debug.png) | [photos](backend/static/artifacts/22-kellett-road-london-sw2-1eb/) | [cached data](backend/cache/22-kellett-road-london-sw2-1eb/)
 - Call script: "22 Kellett Road in Brixton... SW2 1EB. The kitchen's on fire,
-  my mum's in the back bedroom, she can't get out."
+  my mum's in the front bedroom, she can't get out."
 - Why it demos: our most rehearsed property; approach read nails the door,
   the bins, the parked cars, no rear access.
 

@@ -90,7 +90,12 @@ balcony): they are not rooms. Each separate printed label (e.g. two different
 
 For each room give:
 - id: short kebab-case identifier
-- name: the printed label, or your best guess if unlabelled
+- name: the printed label, or your best guess if unlabelled. When two or more
+  rooms would share a name (e.g. two "BEDROOM" labels), qualify each so a
+  crew can tell them apart: use "front"/"back" from the plan's orientation
+  cues (the entrance and street side are the front; the garden side is the
+  back), e.g. "front bedroom" and "back bedroom"; if orientation is unclear,
+  use the floor plus size, e.g. "larger bedroom"
 - floor: 0 for ground floor, 1 for first floor (UK convention), per the
   plan's floor captions
 - label_point: the pixel centre of the room's printed name label; for an
@@ -245,6 +250,26 @@ def _render_overlay(floorplan_path, plan: dict) -> str:
     return "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode()
 
 
+def _dedupe_names(rooms: list[dict]) -> None:
+    """Guarantee unique room names: crews get sent to rooms by name, so two
+    rooms called "bedroom" is a coin flip. Duplicates on the same floor are
+    numbered largest-first when the model has not qualified them itself."""
+    from collections import Counter
+
+    def area(r):
+        xs = [p[0] for p in r["polygon"]]
+        ys = [p[1] for p in r["polygon"]]
+        return (max(xs) - min(xs)) * (max(ys) - min(ys))
+
+    counts = Counter((r["floor"], r["name"].strip().lower()) for r in rooms)
+    for (floor, name), n in counts.items():
+        if n < 2:
+            continue
+        dupes = [r for r in rooms if r["floor"] == floor and r["name"].strip().lower() == name]
+        for i, r in enumerate(sorted(dupes, key=area, reverse=True), start=1):
+            r["name"] = f"{r['name'].strip()} {i}"
+
+
 def _compute_geometry(floorplan_path, plan: dict, width: int, height: int) -> list[dict]:
     """CPU-bound: seal walls, then flood-fill or recentre each room's box."""
     with Image.open(floorplan_path) as im:
@@ -327,6 +352,7 @@ async def _build_live(artifacts: Artifacts) -> RoomGraph:
     # Rank filters and floodfills are seconds of CPU: off the event loop so
     # the console's WebSocket fan-out never freezes mid-demo.
     rooms = await asyncio.to_thread(_compute_geometry, floorplan_path, plan, width, height)
+    _dedupe_names(rooms)
 
     # The model can hallucinate ids: everything downstream is filtered
     # against the rooms that actually exist.

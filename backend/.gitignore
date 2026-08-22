@@ -1,8 +1,7 @@
 .env
 .venv/
 __pycache__/
-# agent screenshots and timestamped approach shots are per-run noise;
-# static/artifacts (golden gallery + floorplan) IS committed so the cached
-# demo fallback works from a fresh clone
+# agent screenshots are per-run noise; static/artifacts (golden gallery +
+# floorplan) and static/approach (imagery referenced by cached approach.json)
+# ARE committed so the cached fallback works from a fresh clone
 static/agent/
-static/approach/
