@@ -1,4 +1,4 @@
-# SizeUp — intelligence + media lane (Bill)
+# Lantern — intelligence + media lane (Bill)
 
 Everything derived from language: the hazard extractor, the route planner, the
 crew briefing. Hand this section to Mykyta for the submission README.
