@@ -1,0 +1,43 @@
+{
+  "lat": 51.4597725,
+  "lng": -0.1138011,
+  "streetview": [
+    {
+      "heading": 60.6,
+      "url": "/static/approach/22-kellett-road-london-sw2-1eb-1787396203-sv-0.jpg"
+    },
+    {
+      "heading": 95.6,
+      "url": "/static/approach/22-kellett-road-london-sw2-1eb-1787396203-sv-1.jpg"
+    },
+    {
+      "heading": 130.6,
+      "url": "/static/approach/22-kellett-road-london-sw2-1eb-1787396203-sv-2.jpg"
+    }
+  ],
+  "satellite_url": "/static/approach/22-kellett-road-london-sw2-1eb-1787396203-satellite.jpg",
+  "coverage": true,
+  "building_type": "terraced",
+  "storeys": 3,
+  "front_door": {
+    "side": "left",
+    "description": "Recessed single-leaf door beneath an ornate stucco arch/porch; light-colored; short step up from small front garden."
+  },
+  "access_notes": [
+    "Small, narrow front garden with low brick wall and gate opening.",
+    "Short path from pavement; 1\u20132 steps to threshold.",
+    "Street trees along pavement.",
+    "Cars parked on both sides of Kellett Road reduce carriageway width.",
+    "No hydrant marker or standpipe visible in the street-view images."
+  ],
+  "obstacles": [
+    "Low brick wall at frontage",
+    "Wheelie bins in the small front garden",
+    "Street trees at kerb",
+    "Parked vehicles at kerbside",
+    "Occasional bicycles locked to front boundary/railings nearby"
+  ],
+  "rear_access": false,
+  "rear_access_note": "Mid-terrace property with enclosed rear garden backing onto other gardens; no alley or side passage visible in satellite view.",
+  "parking": "On-street kerbside parking on Kellett Road; appliance could park at the kerb outside or opposite the property if space is available."
+}

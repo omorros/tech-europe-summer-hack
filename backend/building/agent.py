@@ -14,6 +14,7 @@ narrated stub steps, so the console pipeline never breaks.
 import asyncio
 import base64
 import json
+import re
 import time
 
 import httpx
@@ -59,9 +60,12 @@ SYSTEM_PROMPT = """You are a web navigation agent helping the fire service.
 Task: find the historical property listing for this address in the Rightmove
 sold-prices section: {address}
 
-Search for the postcode or street, find the matching house number in the
-results, and open its most recent sold listing page (the page with the photo
-gallery and floor plan). Accept or dismiss any cookie consent dialog first.
+The search box only accepts a postcode or a street name, never a full
+address: type just the postcode (for the address above that means the last
+part, like "SW2 1EB"), press Enter or click Search, then find the matching
+street and house number in the results and open its most recent sold listing
+page (the page with the photo gallery and floor plan). Accept or dismiss any
+cookie consent dialog first.
 
 When you are on the listing page for the correct property, call the answer
 tool with the current page URL as content. If you are certain the property
@@ -147,11 +151,11 @@ async def _run_agent(address: str) -> Artifacts:
 
                 call = step.tool_call
                 if call.tool_name == "answer":
-                    content = call.arguments.content or ""
-                    if content == "NOT_FOUND":
+                    if (call.arguments.content or "") == "NOT_FOUND":
                         raise RuntimeError("agent could not find the property")
-                    listing_url = content if content.startswith("http") else page.url
-                    return await _extract_artifacts(page, address, listing_url)
+                    # The browser knows where we are; the model's URL can be
+                    # hallucinated, so never use it.
+                    return await _extract_artifacts(page, address, page.url)
 
                 result = await _execute(page, call)
                 messages.append({
@@ -175,6 +179,35 @@ def _evict_old_screenshots(messages: list[dict]) -> None:
         messages[i] = {"role": "user", "content": "[screenshot evicted]"}
 
 
+_MODIFIERS = ("control", "ctrl", "alt", "shift", "meta", "cmd", "command")
+
+
+def _normalize_key(key: str) -> str:
+    """Map model key names ('ControlA', 'ctrl+a') to Playwright combos.
+
+    Chromium on macOS wants Meta for the usual shortcuts, so Control-combos
+    are translated when running on darwin.
+    """
+    import re
+    import sys
+
+    k = key.strip()
+    m = re.fullmatch(
+        r"(control|ctrl|alt|shift|meta|cmd|command)[+\- ]?(\w+)", k, re.IGNORECASE
+    )
+    if not m:
+        return k if len(k) > 1 else k  # plain key like "Enter" or "a"
+    mod, rest = m.group(1).lower(), m.group(2)
+    mod_name = {
+        "control": "Control", "ctrl": "Control", "alt": "Alt",
+        "shift": "Shift", "meta": "Meta", "cmd": "Meta", "command": "Meta",
+    }[mod]
+    if mod_name == "Control" and sys.platform == "darwin":
+        mod_name = "Meta"
+    rest = rest.upper() if len(rest) == 1 else rest.capitalize()
+    return f"{mod_name}+{rest}"
+
+
 async def _execute(page, call: ToolCall) -> str:
     a = call.arguments
     match call.tool_name:
@@ -190,8 +223,9 @@ async def _execute(page, call: ToolCall) -> str:
             await page.keyboard.type(a.text, delay=30)
             return f"typed {a.text!r}"
         case "press_key":
-            await page.keyboard.press(a.key)
-            return f"pressed {a.key}"
+            key = _normalize_key(a.key or "")
+            await page.keyboard.press(key)
+            return f"pressed {key}"
         case "scroll":
             await page.mouse.wheel(0, a.dy or 400)
             return f"scrolled {a.dy}"
@@ -202,28 +236,46 @@ async def _execute(page, call: ToolCall) -> str:
             return f"unknown tool {call.tool_name}"
 
 
-async def _extract_artifacts(page, address: str, listing_url: str) -> Artifacts:
-    """Deterministic DOM extraction once Holo has found the listing."""
-    imgs = await page.evaluate("""() =>
-        [...document.querySelectorAll('img')].map(i => ({
-            src: i.currentSrc || i.src, alt: i.alt || '',
-            w: i.naturalWidth, h: i.naturalHeight,
-        }))
-    """)
-    seen: set[str] = set()
-    floorplan_url = ""
-    gallery: list[dict] = []
-    for img in imgs:
-        src = (img["src"] or "").split("?")[0]
-        if not src.startswith("http") or src in seen:
-            continue
-        seen.add(src)
-        blob = (src + " " + img["alt"]).lower()
-        if "floorplan" in blob or "/flp/" in blob or "_flp_" in blob:
-            floorplan_url = floorplan_url or src
-        elif img["w"] >= 300 and img["h"] >= 200:
-            gallery.append({"src": src, "alt": img["alt"]})
+_MEDIA_RE = re.compile(r"https://media\.rightmove\.co\.uk/[^\"'\\\s)]+")
+_HASH_RE = re.compile(r"/([0-9a-f]{16,})[^/]*\.(?:jpe?g|png|gif)$", re.IGNORECASE)
 
+
+def _dedupe_best(urls: list[str]) -> list[str]:
+    """One URL per underlying image, preferring the full-resolution variant.
+
+    Rightmove serves each image at several sizes (`_max_296x197`, `/dir/`
+    thumbnails); the same content hash appears in every variant's filename.
+    """
+    best: dict[str, tuple[int, str]] = {}
+    for u in urls:
+        m = _HASH_RE.search(u)
+        key = m.group(1) if m else u
+        score = ("_max_" in u) + ("/dir/" in u)
+        if key not in best or score < best[key][0]:
+            best[key] = (score, u)
+    return [u for _, u in best.values()]
+
+
+async def _extract_artifacts(page, address: str, listing_url: str) -> Artifacts:
+    """Deterministic extraction once Holo is on the listing page.
+
+    The gallery lazy-loads, so the DOM only holds a couple of images, but
+    every media URL (photos and floor plans, all sizes) is present as a plain
+    string in the page source. Regex beats fighting the React state format
+    and works on both the old PAGE_MODEL pages and the new detail pages.
+    """
+    html = await page.content()
+    urls = list(dict.fromkeys(_MEDIA_RE.findall(html)))
+    photo_urls = _dedupe_best([u for u in urls if "property-photo" in u])
+    floorplan_urls = _dedupe_best([u for u in urls if "floorplan" in u.lower() or "_flp" in u.lower()])
+    gallery = [{"src": u, "alt": ""} for u in photo_urls]
+    floorplan_url = floorplan_urls[0] if floorplan_urls else ""
+    return await _download_artifacts(address, listing_url, gallery, floorplan_url)
+
+
+async def _download_artifacts(
+    address: str, listing_url: str, gallery: list[dict], floorplan_url: str
+) -> Artifacts:
     slug = slugify(address)
     out_dir = STATIC_DIR / "artifacts" / slug
     out_dir.mkdir(parents=True, exist_ok=True)
