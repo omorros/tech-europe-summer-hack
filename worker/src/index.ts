@@ -210,7 +210,13 @@ async function startWalkthrough(
           input,
           `${origin}/webhook/fal/${jobId}/${leg.index}`,
         );
-        return { ...leg, request_id: submission.request_id, status: "IN_QUEUE" as const };
+        return {
+          ...leg,
+          request_id: submission.request_id,
+          status_url: submission.status_url,
+          response_url: submission.response_url,
+          status: "IN_QUEUE" as const,
+        };
       } catch (error) {
         return { ...leg, status: "ERROR" as const, error: String((error as Error).message) };
       }
@@ -271,9 +277,11 @@ async function getWalkthrough(env: Env, jobId: string): Promise<Response> {
       // still looks unfinished gets checked against fal directly.
       if (!state.video_url && leg.request_id && state.status !== "ERROR") {
         try {
-          const live = await falStatus(env.FAL_KEY, manifest.model, leg.request_id);
+          const live = await falStatus(
+            env.FAL_KEY, manifest.model, leg.request_id, leg.status_url);
           if (live.status === "COMPLETED") {
-            const payload = await falResult(env.FAL_KEY, manifest.model, leg.request_id);
+            const payload = await falResult(
+              env.FAL_KEY, manifest.model, leg.request_id, leg.response_url);
             const url = videoUrl(payload);
             if (url) {
               state.status = "COMPLETED";

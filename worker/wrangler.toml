@@ -10,12 +10,12 @@ compatibility_flags = ["nodejs_compat"]
 # then paste the id here.
 [[kv_namespaces]]
 binding = "SIZEUP_JOBS"
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
+id = "1f1741530c0e4c2c922e39a3965a14a3"
 
 [vars]
 # Set to the deployed workers.dev URL after the first deploy so fal's webhooks
 # come back to the right origin.
-PUBLIC_URL = ""
+PUBLIC_URL = "https://sizeup-walkthrough.bill-nguyentonhoang.workers.dev"
 VIDEO_MODEL = "fal-ai/kling-video/o1/image-to-video"
 
 # Secrets — never put these in this file:

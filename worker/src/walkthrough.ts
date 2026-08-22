@@ -54,6 +54,9 @@ export interface Leg {
   duration: string;
   /** Filled in as the job progresses. */
   request_id?: string;
+  /** Returned by fal on submit — authoritative, do not reconstruct. */
+  status_url?: string;
+  response_url?: string;
   status?: "IN_QUEUE" | "IN_PROGRESS" | "COMPLETED" | "ERROR";
   video_url?: string;
   error?: string;

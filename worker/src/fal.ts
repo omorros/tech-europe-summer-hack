@@ -43,16 +43,28 @@ export async function submit(
   return response.json();
 }
 
+/**
+ * Polling paths drop the model's sub-path.
+ *
+ * Submitting to `fal-ai/kling-video/o1/image-to-video` returns a status_url of
+ * `…/fal-ai/kling-video/requests/{id}/status` — only the first two segments
+ * survive. Constructing the URL from the full model id gives a 405, which is
+ * how this was found in production. Prefer the URLs fal hands back; this is
+ * the fallback when we only have a model id.
+ */
+export function pollBase(model: string): string {
+  return model.split("/").slice(0, 2).join("/");
+}
+
 /** GET …/requests/{id}/status — the fallback when a webhook never lands. */
 export async function status(
   key: string,
   model: string,
   requestId: string,
+  statusUrl?: string,
 ): Promise<{ status: QueueStatus; queue_position?: number }> {
-  const response = await fetch(
-    `${QUEUE}/${model}/requests/${requestId}/status`,
-    { headers: headers(key) },
-  );
+  const url = statusUrl ?? `${QUEUE}/${pollBase(model)}/requests/${requestId}/status`;
+  const response = await fetch(url, { headers: headers(key) });
   if (!response.ok) {
     throw new Error(`fal status ${response.status}: ${(await response.text()).slice(0, 200)}`);
   }
@@ -64,10 +76,10 @@ export async function result<T = unknown>(
   key: string,
   model: string,
   requestId: string,
+  responseUrl?: string,
 ): Promise<T> {
-  const response = await fetch(`${QUEUE}/${model}/requests/${requestId}`, {
-    headers: headers(key),
-  });
+  const url = responseUrl ?? `${QUEUE}/${pollBase(model)}/requests/${requestId}`;
+  const response = await fetch(url, { headers: headers(key) });
   if (!response.ok) {
     throw new Error(`fal result ${response.status}: ${(await response.text()).slice(0, 200)}`);
   }
@@ -75,7 +87,7 @@ export async function result<T = unknown>(
 }
 
 export async function cancel(key: string, model: string, requestId: string): Promise<void> {
-  await fetch(`${QUEUE}/${model}/requests/${requestId}/cancel`, {
+  await fetch(`${QUEUE}/${pollBase(model)}/requests/${requestId}/cancel`, {
     method: "PUT",
     headers: headers(key),
   });
