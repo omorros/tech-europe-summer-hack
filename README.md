@@ -116,13 +116,6 @@ and `frontend/README.md`.
 Every stage degrades to cached results for the properties in
 `test-properties.md`, so the pipeline demos end to end even with no keys.
 
-## Accuracy, honestly
-
-This is a briefing aid, not ground truth. Layouts change after listings and
-the crew treats it as prior knowledge, not gospel. Every fact on the console
-carries its provenance: said on the call, read off Street View, taken from a
-listing that may be years old, or inferred from the plan.
-
 ## Team
 
 Built in one day at the {Tech: Europe} x VEED Summer Lock-In, London, by
