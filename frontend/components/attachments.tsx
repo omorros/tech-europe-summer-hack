@@ -113,7 +113,13 @@ export function useAttachments(state: IncidentState): Attachment[] {
         render: () =>
           graph && (
             <>
-              <FloorPlan graph={graph} route={route} scene={scene} entities={entities} />
+              <FloorPlan
+                graph={graph}
+                route={route}
+                scene={scene}
+                entities={entities}
+                floorplanUrl={artifacts?.floorplan_url}
+              />
               <div className="plan-notes">
                 <PlanLegend />
                 {route && <p style={{ margin: "0.5rem 0 0" }}>{route.rationale}</p>}

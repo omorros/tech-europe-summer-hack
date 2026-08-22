@@ -60,19 +60,16 @@ export default function ConsolePage() {
   return (
     <main className="stage">
       <header className="stage__head">
-        <h1 className="huge" style={{ margin: 0 }}>
-          {address ?? (started ? "Listening" : "No incident")}
-        </h1>
-        {started ? (
-          <StatusLine state={state} />
-        ) : (
-          <p className="status">Press R to replay the recorded call</p>
-        )}
-        {started && (
-          <p className="status" style={{ margin: 0 }}>
-            {live ? "Live bus" : "Local replay"}
-          </p>
-        )}
+        <div className="stage__ident">
+          <h1 className="huge" style={{ margin: 0 }}>
+            {address ?? (started ? "Listening" : "No incident")}
+          </h1>
+          {started ? (
+            <StatusLine state={state} live={live} />
+          ) : (
+            <p className="status">Press R to replay the recorded call</p>
+          )}
+        </div>
         {started && (
           <form className="radio" onSubmit={pushRadio}>
             <label className="sr-only" htmlFor="radio">

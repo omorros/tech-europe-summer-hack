@@ -4,39 +4,43 @@
   "streetview": [
     {
       "heading": 207.3,
-      "url": "/static/approach/14b-deerbrook-road-london-se24-9be-1787403650-sv-0.jpg"
+      "url": "/static/approach/14b-deerbrook-road-london-se24-9be-1787417180-sv-0.jpg"
     },
     {
       "heading": 242.3,
-      "url": "/static/approach/14b-deerbrook-road-london-se24-9be-1787403650-sv-1.jpg"
+      "url": "/static/approach/14b-deerbrook-road-london-se24-9be-1787417180-sv-1.jpg"
     },
     {
       "heading": 277.3,
-      "url": "/static/approach/14b-deerbrook-road-london-se24-9be-1787403650-sv-2.jpg"
+      "url": "/static/approach/14b-deerbrook-road-london-se24-9be-1787417180-sv-2.jpg"
     }
   ],
-  "satellite_url": "/static/approach/14b-deerbrook-road-london-se24-9be-1787403650-satellite.jpg",
+  "satellite_url": "/static/approach/14b-deerbrook-road-london-se24-9be-1787417180-satellite.jpg",
   "coverage": true,
-  "building_type": "Terraced house",
-  "storeys": 3,
+  "building_type": "terraced house",
+  "storeys": 4,
   "front_door": {
-    "side": "right",
-    "description": "Arched recessed doorway, appears set back from small front garden; door seen painted dark green; 2\u20133 steps up from path behind a low front wall."
+    "side": "right (as viewed from the road)",
+    "description": "Recessed under a tall white round-arched porch with a glazed fanlight; dark-coloured door; short path behind a low front wall with a small step at the threshold."
   },
   "access_notes": [
-    "Narrow frontage with low brick/rendered wall and short path from pavement.",
-    "2\u20133 steps up to main threshold.",
-    "Permit parking signpost on pavement near frontage.",
-    "Telecoms/utility cabinet on pavement by the frontage marked \u201c15\u201d.",
-    "No hydrant marker or standpipe plate visible in the images."
+    "Narrow frontage with small front garden and low wall.",
+    "Short path from pavement; small threshold step; possible lower-ground/basement lightwell behind the front wall.",
+    "Residents\u2019 parking bays along the kerb.",
+    "Parking/permit signpost on pavement near the frontage.",
+    "Telecom/utility cabinet on pavement nearby (painted green, marked \u201c15\u201d).",
+    "Street lighting column and a utility/telegraph pole close by on the pavement.",
+    "No hydrant marker or standpipe visible."
   ],
   "obstacles": [
-    "Wheelie bins at the frontage.",
-    "Telecoms/utility cabinet on pavement.",
-    "Parked vehicles along kerb.",
-    "Timber/telegraph pole and street lighting column along pavement."
+    "Low front garden wall.",
+    "Wheelie bins on pavement/at frontage.",
+    "Green telecom/utility cabinet on pavement.",
+    "Street lighting column/telegraph pole on pavement.",
+    "Parked cars along the kerb.",
+    "Shrubs/plant pots within front gardens."
   ],
   "rear_access": false,
-  "rear_access_note": "Rear gardens back directly onto other properties\u2019 gardens; no alley or side passage visible from road or satellite view.",
-  "parking": "On-street parking bays on Deerbrook Road directly outside; an appliance could stop kerbside space permitting."
+  "rear_access_note": "Rear garden appears to back onto other gardens with no visible rear alley or side passage for this mid-terrace plot (from satellite view).",
+  "parking": "Kerbside on Deerbrook Road in residents\u2019 bays directly outside or opposite, subject to available space on this single-carriageway residential street."
 }

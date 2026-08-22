@@ -1274,3 +1274,61 @@ body {
   border: 1px dashed var(--paper-edge);
   color: var(--carbon);
 }
+
+/* Listing floor plans are tall portraits - 361x1058 on Deerbrook. At
+   width:100% that is several screens high and unreadable. Size to the box and
+   letterbox instead: the whole plan visible at once is the point. */
+.plan-svg {
+  display: block;
+  width: 100%;
+  height: clamp(240px, 54vh, 640px);
+  background: var(--paper);
+}
+
+.pop .plan-svg {
+  height: clamp(180px, 38vh, 420px);
+}
+
+.pop[data-expanded="true"] .plan-svg {
+  height: clamp(280px, 68vh, 780px);
+}
+
+@media (max-width: 900px) {
+  .plan-svg {
+    height: 60vh;
+  }
+}
+
+/* The header was four stacked rows and took a third of the screen from the
+   panel. Identity left, the operator's own control right, one band. */
+.stage__head {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.6rem 2rem;
+}
+
+.stage__ident {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.radio {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  min-width: min(34vw, 460px);
+}
+
+.radio .field {
+  flex: 1;
+}
+
+@media (max-width: 900px) {
+  .stage__head {
+    grid-template-columns: 1fr;
+  }
+  .radio {
+    min-width: 0;
+  }
+}

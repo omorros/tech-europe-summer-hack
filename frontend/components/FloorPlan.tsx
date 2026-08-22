@@ -1,6 +1,7 @@
 "use client";
 
-import { useId, useMemo } from "react";
+import { useId, useMemo, useState } from "react";
+import { mediaUrl } from "@/lib/config";
 import type { Entity, Room, RoomGraph, Route, Scene } from "@/lib/types";
 
 /** Fallback only for the fabricated demo plan in timeline.ts. Real graphs
@@ -38,17 +39,25 @@ export function FloorPlan({
   route,
   scene,
   entities,
+  floorplanUrl,
 }: {
   graph: RoomGraph;
   route: Route | null;
   scene: Scene | null;
   entities: Entity[];
+  /** The listing's own floor plan. Room polygons are in its pixel space, so
+   *  the drawing and the overlay line up without any transform. */
+  floorplanUrl?: string | null;
 }) {
+  const [planBroken, setPlanBroken] = useState(false);
   const hatchId = useId().replace(/:/g, "");
   const fire = roomFor(entities.find((e) => e.type === "FIRE_ORIGIN"), graph.rooms);
   const victim = roomFor(entities.find((e) => e.type === "VICTIM_LOCATION"), graph.rooms);
   const firePin = fire ? centroid(fire) : null;
   const measured = Boolean(graph.floorplan_width && graph.floorplan_height);
+  const planSrc = mediaUrl(floorplanUrl);
+  // The real plan only lines up if the graph was measured against it.
+  const showPlan = Boolean(planSrc) && measured && !planBroken;
   const viewBox = measured
     ? `0 0 ${graph.floorplan_width} ${graph.floorplan_height}`
     : DEMO_VIEW;
@@ -92,8 +101,9 @@ export function FloorPlan({
     <svg
       viewBox={viewBox}
       role="img"
-      aria-label="Floor plan with rooms labelled, hazards pinned and the planned route drawn"
-      style={{ display: "block", width: "100%", height: "auto", background: "var(--paper)" }}
+      aria-label="Floor plan with the fire, the casualty and the planned route marked"
+      className="plan-svg"
+      preserveAspectRatio="xMidYMid meet"
     >
       <defs>
         <pattern id={hatchId} width="8" height="8" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
@@ -109,21 +119,42 @@ export function FloorPlan({
         </>
       )}
 
+      {/* The listing's own floor plan, underneath everything. It already draws
+          the walls, doors, windows and room names far better than we can from
+          polygons, so with it present we contribute only the incident: the
+          rooms that matter, the pins and the route. */}
+      {showPlan && (
+        <image
+          href={planSrc}
+          x="0"
+          y="0"
+          width={graph.floorplan_width}
+          height={graph.floorplan_height}
+          preserveAspectRatio="none"
+          onError={() => setPlanBroken(true)}
+        />
+      )}
+
       {graph.rooms.map((room) => {
         const [cx, cy] = centroid(room);
         const isFire = fire?.id === room.id;
         const isVictim = victim?.id === room.id;
+        // Over the real plan, an untouched room needs no mark at all.
+        if (showPlan && !isFire && !isVictim) return null;
         return (
           <g key={room.id}>
             <polygon
               points={points(room)}
               className={`plan-room${isFire ? " plan-room--fire" : ""}${isVictim ? " plan-room--victim" : ""}`}
+              style={showPlan ? { stroke: "none" } : undefined}
             />
             {isFire && <polygon points={points(room)} fill={`url(#${hatchId})`} stroke="none" />}
-            <text x={cx} y={cy - 4} textAnchor="middle" className="plan-label" fill="var(--carbon)">
-              {room.name}
-            </text>
-            {room.doors.map(([x, y], index) => (
+            {!showPlan && (
+              <text x={cx} y={cy - 4} textAnchor="middle" className="plan-label" fill="var(--carbon)">
+                {room.name}
+              </text>
+            )}
+            {!showPlan && room.doors.map(([x, y], index) => (
               <rect
                 key={`d${index}`}
                 x={x - 9}
@@ -135,7 +166,7 @@ export function FloorPlan({
                 strokeWidth="2"
               />
             ))}
-            {room.windows.map(([x, y], index) => (
+            {!showPlan && room.windows.map(([x, y], index) => (
               <line
                 key={`w${index}`}
                 x1={x - 14}

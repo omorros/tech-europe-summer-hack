@@ -58,7 +58,7 @@ function useThrottled(value: string, ms: number) {
   return shown;
 }
 
-export function StatusLine({ state }: { state: IncidentState }) {
+export function StatusLine({ state, live }: { state: IncidentState; live?: boolean }) {
   const elapsed = useElapsed(state.callState === "answered");
   const extract = useThrottled(state.stages.extract.message, 250);
 
@@ -75,6 +75,8 @@ export function StatusLine({ state }: { state: IncidentState }) {
   if (done.length > 0) parts.push(`${done.length} of ${STAGES.length} done`);
   if (running.length > 0) parts.push(`${running.map((stage) => stage.label).join(", ")} running`);
   if (extract) parts.push(extract);
+
+  if (live !== undefined) parts.push(live ? "Live bus" : "Local replay");
 
   return (
     <p className="status">

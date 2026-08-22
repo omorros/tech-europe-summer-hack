@@ -1,0 +1,15 @@
+{
+  "fire_room": null,
+  "legs": [
+    {
+      "index": 0,
+      "label": "Front of the building \u2192 Bedroom 1",
+      "from_room_id": "_street",
+      "to_room_id": "bedroom-1",
+      "narration": "Entry via the Front of the building, through the Hallway, to the Bedroom 1, where the fire is.",
+      "status": "COMPLETED",
+      "video_url": "https://v3b.fal.media/files/b/0aa76216/bGRlQbB5uv-zf0C1HENNi_output.mp4",
+      "error": null
+    }
+  ]
+}

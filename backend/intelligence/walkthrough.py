@@ -295,10 +295,25 @@ async def start(payload: dict) -> dict:
             "route rooms are photographed and there is no Street View frame to "
             "open on. The walk needs a real image to start from."
         )
-    if not payload.get("photos", {}).get(route[0]["room_id"]):
-        raise RuntimeError(
-            f"nothing to open the walk on: no image for \"{route[0]['room_id']}\""
-        )
+    # The walk has to open on a real image. In continuous mode the route
+    # carries rooms with no photograph so the narration can name them, and
+    # estate agents rarely photograph the hallway a route enters through — so
+    # route[0] having no image is normal, not fatal. Start at the first room
+    # that does have one rather than refusing to render at all; `coverage`
+    # already tells the console which rooms went unphotographed.
+    photos = payload.get("photos", {})
+    if not photos.get(route[0]["room_id"]):
+        first = next((i for i, hop in enumerate(route) if photos.get(hop["room_id"])), None)
+        if first is None or len(route) - first < 2:
+            raise RuntimeError(
+                "nothing to open the walk on: no photographed room on the route "
+                f"({', '.join(hop['room_id'] for hop in route)})"
+            )
+        skipped = [hop["name"] for hop in route[:first]]
+        route = route[first:]
+        payload = {**payload, "route": route}
+        bus.emit("status", {"stage": "briefing", "state": "running",
+                            "message": f"walk opens past {', '.join(skipped)} - not photographed"})
     async with _httpx().AsyncClient(timeout=60.0) as client:
         response = await client.post(f"{WORKER_URL}/walkthrough",
                                      headers=_headers(), json=payload)
