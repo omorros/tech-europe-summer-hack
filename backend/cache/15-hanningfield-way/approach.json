@@ -1,0 +1,41 @@
+{
+  "lat": 51.91620589999999,
+  "lng": 0.9206660000000001,
+  "streetview": [
+    {
+      "heading": 27.7,
+      "url": "/static/approach/15-hanningfield-way-1787419641-sv-0.jpg"
+    },
+    {
+      "heading": 62.7,
+      "url": "/static/approach/15-hanningfield-way-1787419641-sv-1.jpg"
+    },
+    {
+      "heading": 97.7,
+      "url": "/static/approach/15-hanningfield-way-1787419641-sv-2.jpg"
+    }
+  ],
+  "satellite_url": "/static/approach/15-hanningfield-way-1787419641-satellite.jpg",
+  "coverage": true,
+  "building_type": "Residential low-rise around a parking court (appears to be 2\u2011storey maisonettes/flats; exact dwelling frontage for No. 15 not visible)",
+  "storeys": 2,
+  "front_door": {
+    "side": "not visible from road",
+    "description": "Front entrances are obscured by brick walls and carport structures; no specific door for No. 15 is in view."
+  },
+  "access_notes": [
+    "Access is via a short spur off Hanningfield Way into a paved parking court with covered carports.",
+    "Low brick walls and pillars define the parking court; pedestrian path/gate visible to the right of the carport.",
+    "No hydrant marker or standpipe plate seen in the images.",
+    "Shared residential access; carriageway appears narrow within the court."
+  ],
+  "obstacles": [
+    "Parked vehicles under/around the carports.",
+    "Carport roof with support posts (low clearance).",
+    "Wheelie bin next to brick wall/pedestrian gate.",
+    "Brick walls limiting turning space."
+  ],
+  "rear_access": true,
+  "rear_access_note": "Pedestrian pathways appear to run around/behind the residential blocks as seen next to the carports and on satellite view; gardens/open communal areas to the rear.",
+  "parking": "A fire appliance could park on Hanningfield Way adjacent to the entrance of the spur, or within the paved parking court if spaces are clear and access width allows."
+}

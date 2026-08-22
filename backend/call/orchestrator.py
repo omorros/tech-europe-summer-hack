@@ -10,6 +10,8 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import re
+import time
 import uuid
 from collections import deque
 from pathlib import Path
@@ -74,6 +76,31 @@ def resolve_address(address: str) -> str:
         if len(near) == 1:
             return _address_from_cache(near[0]) or raw
     return raw
+
+
+def golden_by_street(text: str) -> str | None:
+    """A warmed property named by its street alone.
+
+    Live transcription mangles house numbers and postcodes - a real call came
+    through as "Please inspire on my kitchen" - and the street pattern needs a
+    digit in front of the street name, so a caller who says the address
+    perfectly can still extract nothing and the lanes never start. Street
+    names are the durable part of what gets heard, and the five warmed
+    properties have five distinct ones, so that alone identifies the building.
+    """
+    flat = re.sub(r"[^a-z0-9]", "", (text or "").lower())
+    if not flat:
+        return None
+    try:
+        folders = [f for f in CACHE_DIR.iterdir() if f.is_dir()]
+    except OSError:
+        return None
+    for folder in folders:
+        parts = folder.name.split("-")
+        street = parts[1] if len(parts) >= 2 else ""
+        if len(street) >= 5 and street in flat:
+            return _address_from_cache(folder)
+    return None
 
 
 def _street_key(slug: str) -> str:
@@ -243,6 +270,18 @@ class Orchestrator:
             )
             if spoken:
                 self._start_lanes(generation, resolve_address(spoken))
+            else:
+                # Nothing the extractor recognised as an address, but the
+                # caller may still have named a street we already hold.
+                golden = golden_by_street(extract_text)
+                if golden:
+                    entity = {
+                        "type": "ADDRESS", "value": golden, "confidence": 0.55,
+                        "source": "call", "ts": time.time(),
+                    }
+                    self.entities.append(entity)
+                    bus.emit("entity.extracted", entity)
+                    self._start_lanes(generation, golden)
 
         # Route replanning is a cheap BFS, so it follows every new hazard.
         # The briefing is not, so it runs once here — a caller who never hangs

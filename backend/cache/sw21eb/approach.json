@@ -1,0 +1,45 @@
+{
+  "lat": 51.4596775,
+  "lng": -0.1138864,
+  "streetview": [
+    {
+      "heading": 79.5,
+      "url": "/static/approach/sw21eb-1787419545-sv-0.jpg"
+    },
+    {
+      "heading": 114.5,
+      "url": "/static/approach/sw21eb-1787419545-sv-1.jpg"
+    },
+    {
+      "heading": 149.5,
+      "url": "/static/approach/sw21eb-1787419545-sv-2.jpg"
+    }
+  ],
+  "satellite_url": "/static/approach/sw21eb-1787419545-satellite.jpg",
+  "coverage": true,
+  "building_type": "terraced",
+  "storeys": 3,
+  "front_door": {
+    "side": "unclear",
+    "description": "Recessed under a shared stuccoed porch with decorative columns; dark-coloured door with transom/fanlight above."
+  },
+  "access_notes": [
+    "Narrow frontage with small front garden behind a low brick wall and gate opening.",
+    "Shallow step(s) up into the porch.",
+    "Wheelie bins stored at the front boundary.",
+    "Street tree on pavement directly outside/near the frontage.",
+    "Bicycle(s) locked near the frontage.",
+    "On-street parking both sides; single carriageway street.",
+    "No hydrant marker or standpipe plate visibly seen in the images."
+  ],
+  "obstacles": [
+    "Low brick boundary wall",
+    "Wheelie bins",
+    "Bicycles",
+    "Street tree",
+    "Parked vehicles along kerb"
+  ],
+  "rear_access": false,
+  "rear_access_note": "Mid-terrace; rear garden backs onto other rear gardens with no alleyway or side passage visible on satellite view.",
+  "parking": "Kerbside on the street directly outside or opposite, in gaps between parked vehicles."
+}
