@@ -14,3 +14,18 @@ run_worker_first = ["/ws/*", "/incident", "/incident/*", "/health", "/static/*",
 # Public HTTPS origin of the FastAPI process. A trycloudflare.com tunnel URL.
 # Empty = the UI still serves; API calls 503 until you set this or pass ?backend=
 BACKEND_ORIGIN = ""
+
+# A previous deploy from a feature branch created an IncidentHub Durable
+# Object on this Worker. main does not define that class, and Cloudflare
+# refuses to replace a script whose live Durable Objects depend on a class the
+# new version no longer exports (error 10064). This migration drops it.
+#
+# It DELETES those objects and their stored state. That is safe here: the
+# objects held transient incident state for one demo, nothing durable.
+#
+# If the Durable Object architecture comes back, add a NEW migration with a
+# later tag that re-creates the class — do not reuse or remove this one, or
+# the applied-tag sequence stops matching what Cloudflare has recorded.
+[[migrations]]
+tag = "v1-drop-incident-hub"
+deleted_classes = ["IncidentHub"]
