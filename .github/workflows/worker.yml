@@ -31,7 +31,15 @@ jobs:
 
   deploy:
     needs: test
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    # main only, and only on a real push to this repo. Three separate guards
+    # because each blocks a different way of deploying by accident:
+    #   ref        — a branch or tag push must never touch the live Worker
+    #   event      — pull_request and workflow_dispatch from a branch must not
+    #   repository — a fork's push must not deploy into our account
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      github.event_name == 'push' &&
+      github.repository == 'omorros/tech-europe-summer-hack'
     runs-on: ubuntu-latest
     # Concurrency, not a matrix: two deploys racing to the same Worker would
     # be nondeterministic about which version ends up live.

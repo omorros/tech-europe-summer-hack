@@ -21,7 +21,7 @@ import sys
 import webbrowser
 from pathlib import Path
 
-from intelligence import make_briefing, on_transcript, plan_route
+from intelligence import director, make_briefing, on_transcript, plan_route
 from intelligence.config import BACKEND_DIR
 from intelligence.golden import (GOLDEN_APPROACH, GOLDEN_ARTIFACTS,
                                  GOLDEN_ROOM_GRAPH, IS_REAL)
@@ -90,16 +90,40 @@ async def run(address: str, dry: bool) -> None:
         print(f"  {row['label']:<12} {row['value'][:70]}   [{row['source']}]")
 
     print("\n── walkthrough ───────────────────────────────────────")
+    fire = next((e["value"] for e in reversed(entities) if e["type"] == "FIRE_ORIGIN"), None)
+    fire_room = None
+    if fire:
+        from intelligence.route import _match_room
+        fire_room = _match_room(rooms, fire)
+
     payload = build_payload(
         route, rooms, artifacts, approach=approach,
-        hazards=[e["value"] for e in hazards],
+        hazards=[e["value"] for e in hazards], fire_room=fire_room,
+        seconds_per_leg=int(sys.argv[sys.argv.index("--secs") + 1]) if "--secs" in sys.argv else None,
         building_description=f"{approach.get('building_type','house')}, "
                              f"{approach.get('storeys','')} storeys".strip(", "),
     )
+
+    print(f"  director: {director.backend_name()}")
+    prompts = await director.direct_legs(
+        address=address, approach=approach, graph=rooms, artifacts=artifacts,
+        hazards=[e["value"] for e in hazards], walk=payload["route"],
+        fire_room=fire_room,
+    )
+    if prompts:
+        payload["leg_prompts"] = prompts
+        for i, text in enumerate(prompts):
+            print(f"\n  leg {i+1}: {text[:300]}")
+        print()
+    else:
+        print("  (no model reachable — the Worker will use its template)")
     coverage = payload["coverage"]
     print("  legs: " + " → ".join(r["name"] for r in payload["route"]))
-    print(f"  imagery: {coverage['with_imagery']}/{coverage['route_rooms']} route rooms"
-          + (f"; missing {', '.join(coverage['missing'])}" if coverage["missing"] else ""))
+    print(f"  imagery: {coverage['with_imagery']} of {coverage['photographed_total']} "
+          f"photographed rooms; {coverage['route_rooms']} on the route"
+          + (f"; missing {', '.join(coverage['missing'])}" if coverage["missing"] else "")
+          + (f"; also showing {', '.join(coverage['extra_rooms_shown'])}"
+             if coverage.get("extra_rooms_shown") else ""))
 
     if len(payload["route"]) < 2:
         print("  not enough real imagery to animate — stopping here")
