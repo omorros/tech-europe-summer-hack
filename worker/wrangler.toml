@@ -17,6 +17,9 @@ id = "1f1741530c0e4c2c922e39a3965a14a3"
 # come back to the right origin.
 PUBLIC_URL = "https://sizeup-walkthrough.bill-nguyentonhoang.workers.dev"
 VIDEO_MODEL = "fal-ai/kling-video/o1/image-to-video"
+# Hard ceiling per walkthrough. A continuous 10s clip is $1.12; the headroom is
+# for the per-hop mode, which a large house can push past $6.
+MAX_USD = "30"
 
 # Secrets — never put these in this file:
 #   npx wrangler secret put FAL_KEY

@@ -1,0 +1,15 @@
+{
+  "fire_room": "kitchen",
+  "legs": [
+    {
+      "index": 0,
+      "label": "Front of the building \u2192 Kitchen",
+      "from_room_id": "_street",
+      "to_room_id": "kitchen",
+      "narration": "Entry via the Front of the building, through the Hallway and the Bedroom 1, to the Kitchen, where the fire is. kitchen; gas bottle in cooker; smoke; back door.",
+      "status": "COMPLETED",
+      "video_url": "https://v3b.fal.media/files/b/0aa75f79/Rgg3rPSEALvgmeovysys1_output.mp4",
+      "error": null
+    }
+  ]
+}

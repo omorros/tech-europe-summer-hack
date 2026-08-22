@@ -112,12 +112,19 @@ def build_payload(route: Route, graph: RoomGraph, artifacts: Artifacts, *,
                   seconds_per_leg: int | None = None,
                   extend: bool = True,
                   fire_room: str | None = None,
-                  leg_prompts: list[str] | None = None) -> dict[str, Any]:
+                  leg_prompts: list[str] | None = None,
+                  continuous: bool = False) -> dict[str, Any]:
     """Route + room graph + listing photos -> Worker request.
 
-    Rooms with no photograph are dropped rather than guessed at: every leg
-    needs a real image at both ends, which is the constraint that stops the
-    model inventing a building.
+    `continuous` asks for one unbroken clip from the front of the building to
+    the room the fire started in, rather than a clip per hop. Only the two
+    ends are photographed then, so the rooms in between stay on the path and
+    get named in the prompt instead of being dropped for want of an image —
+    which is how a hallway finally makes it into the walk.
+
+    In the per-hop mode, rooms with no photograph are dropped rather than
+    guessed at: every leg needs a real image at both ends, which is the
+    constraint that stops the model inventing a building.
 
     Estate agents photograph rooms they are selling, not circulation — so
     hallways, landings and stairs, which is exactly what a route walks
@@ -167,8 +174,9 @@ def build_payload(route: Route, graph: RoomGraph, artifacts: Artifacts, *,
                         "floor": 0})
         photos["_street"] = _as_public_image(street)
 
-    def add(room_id: str) -> None:
-        if room_id not in photo_by_room:
+    def add(room_id: str, *, needs_photo: bool = True) -> None:
+        have = room_id in photo_by_room
+        if needs_photo and not have:
             return
         if any(o["room_id"] == room_id for o in ordered):
             return
@@ -178,10 +186,22 @@ def build_payload(route: Route, graph: RoomGraph, artifacts: Artifacts, *,
             "name": display(room_id),
             "floor": room.get("floor", 0),
         })
-        photos[room_id] = _as_public_image(photo_by_room[room_id])
+        if have:
+            photos[room_id] = _as_public_image(photo_by_room[room_id])
 
-    for room_id in route_rooms:
-        add(room_id)
+    if continuous:
+        # Entrance to the seat of the fire, in order, and nothing else: the
+        # clip is one take, so a detour through the spare bedroom would have
+        # to be walked on screen rather than skipped between legs.
+        for room_id in route_rooms:
+            if room_id != fire_room:
+                add(room_id, needs_photo=False)
+        if fire_room:
+            add(fire_room, needs_photo=False)
+        extend = False
+    else:
+        for room_id in route_rooms:
+            add(room_id)
 
     # The route is the shortest path to the casualty, so it deliberately skips
     # rooms — but a crew still has to know what is behind those doors, and we
@@ -211,7 +231,11 @@ def build_payload(route: Route, graph: RoomGraph, artifacts: Artifacts, *,
         if fire_room and fire_room in photo_by_room:
             add(fire_room)
 
-    covered = [r["room_id"] for r in ordered if r["room_id"] != "_street"]
+    # Only rooms we actually have an image of count as covered. In continuous
+    # mode the path carries unphotographed rooms too, and calling those
+    # "covered" would be the exact overclaim this block exists to prevent.
+    covered = [r["room_id"] for r in ordered
+               if r["room_id"] != "_street" and r["room_id"] in photos]
     off_route = [r for r in covered if r not in route_rooms]
     payload: dict[str, Any] = {
         "address": artifacts.get("address", ""),
@@ -230,6 +254,8 @@ def build_payload(route: Route, graph: RoomGraph, artifacts: Artifacts, *,
             "photographed_total": len(photo_by_room),
         },
     }
+    if continuous:
+        payload["continuous"] = True
     if leg_prompts:
         payload["leg_prompts"] = leg_prompts
     if seconds_per_leg is not None:
@@ -260,18 +286,28 @@ async def start(payload: dict) -> dict:
     """POST /walkthrough — returns immediately with a job id."""
     if not available():
         raise RuntimeError("SIZEUP_WORKER_URL is not set")
-    if len(payload.get("route", [])) < 2:
+    route = payload.get("route", [])
+    if len(route) < 2:
         coverage = payload.get("coverage", {})
         raise RuntimeError(
             "not enough real imagery for a walkthrough: "
             f"{coverage.get('with_imagery', 0)} of {coverage.get('route_rooms', 0)} "
             "route rooms are photographed and there is no Street View frame to "
-            "open on. Every leg needs a real image at both ends."
+            "open on. The walk needs a real image to start from."
+        )
+    if not payload.get("photos", {}).get(route[0]["room_id"]):
+        raise RuntimeError(
+            f"nothing to open the walk on: no image for \"{route[0]['room_id']}\""
         )
     async with _httpx().AsyncClient(timeout=60.0) as client:
         response = await client.post(f"{WORKER_URL}/walkthrough",
                                      headers=_headers(), json=payload)
-        response.raise_for_status()
+        if response.status_code >= 400:
+            # raise_for_status alone gives "400 Bad Request" and drops the
+            # Worker's explanation, which is the only useful part.
+            raise RuntimeError(
+                f"walkthrough Worker refused ({response.status_code}): {response.text[:400]}"
+            )
         job = response.json()
 
     bus.emit("status", {"stage": "briefing", "state": "running",

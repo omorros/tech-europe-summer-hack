@@ -167,7 +167,7 @@ async function startWalkthrough(
       : autoSeconds(adapter, legs.length, target);
 
   const estimated = estimateUsd(adapter, legs.length, seconds);
-  const ceiling = Number(env.MAX_USD ?? 6);
+  const ceiling = Number(env.MAX_USD ?? 30);
   if (!Number.isFinite(estimated)) {
     // An unmapped model has no known price, so the ceiling cannot be enforced.
     // Refuse rather than spend an unknown amount of a shared voucher.

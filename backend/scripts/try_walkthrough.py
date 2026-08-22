@@ -4,10 +4,17 @@
     uv run python -m scripts.try_walkthrough                        # golden property
     uv run python -m scripts.try_walkthrough "22 Kellett Road, London SW2 1EB"
     uv run python -m scripts.try_walkthrough --dry                  # plan only, spend nothing
+    uv run python -m scripts.try_walkthrough --legs                 # clip per hop, not one take
+
+By default this renders what the console renders: ONE unbroken clip from the
+front of the building to the room the fire started in. `--legs` switches to
+the older per-hop playlist, which covers more rooms with real photographs but
+cuts at every doorway.
 
 Uses the cached property for the address if one exists, so it costs nothing
 to re-run the planning. Only the render spends money, and it prints the
-estimate and asks before it does.
+estimate and asks before it does. A successful render is written to
+backend/cache/<slug>/walkthrough.json, which is what the live console replays.
 
 Opens a local page at the end that plays the clips back to back with the
 crew card beside them — which is roughly what the console will look like.
@@ -56,7 +63,7 @@ def load_property(address: str) -> tuple[dict, dict, dict, str]:
             "golden property" + ("" if IS_REAL else " (fictional fallback)"))
 
 
-async def run(address: str, dry: bool) -> None:
+async def run(address: str, dry: bool, continuous: bool) -> None:
     approach, artifacts, rooms, source = load_property(address)
     address = artifacts.get("address") or address
     print(f"property: {address}   [{source}]\n")
@@ -99,13 +106,16 @@ async def run(address: str, dry: bool) -> None:
     payload = build_payload(
         route, rooms, artifacts, approach=approach,
         hazards=[e["value"] for e in hazards], fire_room=fire_room,
+        continuous=continuous,
         seconds_per_leg=int(sys.argv[sys.argv.index("--secs") + 1]) if "--secs" in sys.argv else None,
         building_description=f"{approach.get('building_type','house')}, "
                              f"{approach.get('storeys','')} storeys".strip(", "),
     )
 
+    print(f"  mode: {'one continuous take' if continuous else 'a clip per hop'}")
     print(f"  director: {director.backend_name()}")
-    prompts = await director.direct_legs(
+    direct = director.direct_continuous if continuous else director.direct_legs
+    prompts = await direct(
         address=address, approach=approach, graph=rooms, artifacts=artifacts,
         hazards=[e["value"] for e in hazards], walk=payload["route"],
         fire_room=fire_room,
@@ -113,12 +123,12 @@ async def run(address: str, dry: bool) -> None:
     if prompts:
         payload["leg_prompts"] = prompts
         for i, text in enumerate(prompts):
-            print(f"\n  leg {i+1}: {text[:300]}")
+            print(f"\n  {'shot' if continuous else f'leg {i+1}'}: {text[:600]}")
         print()
     else:
         print("  (no model reachable — the Worker will use its template)")
     coverage = payload["coverage"]
-    print("  legs: " + " → ".join(r["name"] for r in payload["route"]))
+    print("  walk: " + " → ".join(r["name"] for r in payload["route"]))
     print(f"  imagery: {coverage['with_imagery']} of {coverage['photographed_total']} "
           f"photographed rooms; {coverage['route_rooms']} on the route"
           + (f"; missing {', '.join(coverage['missing'])}" if coverage["missing"] else "")
@@ -154,6 +164,17 @@ async def run(address: str, dry: bool) -> None:
               + (f" — {leg['error']}" if leg.get("error") else ""))
         if leg.get("video_url"):
             print(f"      {leg['video_url']}")
+
+    # Same file the live console reads, so the next call at this address plays
+    # this render instead of paying for it again.
+    playable = [leg for leg in state["legs"] if leg.get("video_url")]
+    if playable:
+        folder = BACKEND_DIR / "cache" / slugify(address)
+        folder.mkdir(parents=True, exist_ok=True)
+        (folder / "walkthrough.json").write_text(
+            json.dumps({"fire_room": fire_room, "legs": playable}, indent=2)
+        )
+        print(f"  cached to {folder / 'walkthrough.json'}")
 
     write_page(address, briefing, state, coverage)
     print(f"\n  opened {OUT}")
@@ -212,10 +233,15 @@ play();
 
 
 def main() -> None:
-    args = [a for a in sys.argv[1:] if a != "--dry"]
-    dry = "--dry" in sys.argv
-    address = args[0] if args else (GOLDEN_ARTIFACTS.get("address") or "")
-    asyncio.run(run(address, dry))
+    argv = sys.argv[1:]
+    # Everything that is not a flag or a flag's value is the address. Without
+    # the second clause, `--secs 8` on its own was read as the address.
+    words = [
+        arg for i, arg in enumerate(argv)
+        if not arg.startswith("--") and not (i and argv[i - 1] == "--secs")
+    ]
+    address = words[0] if words else (GOLDEN_ARTIFACTS.get("address") or "")
+    asyncio.run(run(address, "--dry" in argv, continuous="--legs" not in argv))
 
 
 if __name__ == "__main__":

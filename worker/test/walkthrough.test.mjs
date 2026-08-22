@@ -111,6 +111,63 @@ test("the first leg's narration names the entry point", () => {
   assert.match(legNarration(legs[0], REQUEST), /^Entry via the Hallway/);
 });
 
+// --- continuous: one unbroken clip, entrance to the seat of the fire --------
+
+const CONTINUOUS = { ...REQUEST, continuous: true, seconds_per_leg: undefined };
+
+test("a continuous walk is one clip however many rooms the route has", () => {
+  for (const rooms of [2, 3, 5, 9, 14]) {
+    const legs = buildLegs({ ...route(rooms), continuous: true });
+    assert.equal(legs.length, 1, `${rooms} rooms`);
+  }
+});
+
+test("the single clip runs entrance to fire room, not entrance to next door", () => {
+  const [leg] = buildLegs(CONTINUOUS);
+  assert.equal(leg.label, "Hallway → Back bedroom");
+  assert.equal(leg.from_room_id, "hallway");
+  assert.equal(leg.to_room_id, "bedroom_back");
+  assert.equal(leg.start_image_url, REQUEST.photos.hallway);
+  assert.equal(leg.end_image_url, REQUEST.photos.bedroom_back);
+});
+
+test("rooms passed on the way are named in the prompt, since they are not shown", () => {
+  const [leg] = buildLegs(CONTINUOUS);
+  assert.match(leg.prompt, /single continuous take/);
+  assert.match(leg.prompt, /passing the Landing/);
+  assert.match(leg.prompt, /Do not cut\./);
+  assert.match(leg.prompt, /completely deserted/);
+});
+
+test("a continuous walk takes the longest clip the model allows", () => {
+  assert.equal(buildLegs(CONTINUOUS)[0].duration, "10");
+  // ...and still honours an explicit shorter request.
+  assert.equal(buildLegs({ ...CONTINUOUS, seconds_per_leg: 6 })[0].duration, "6");
+});
+
+test("a continuous walk needs no photo of the rooms in between", () => {
+  const sparse = {
+    ...CONTINUOUS,
+    photos: { hallway: REQUEST.photos.hallway, bedroom_back: REQUEST.photos.bedroom_back },
+  };
+  const [leg] = buildLegs(sparse);
+  assert.equal(leg.end_image_url, REQUEST.photos.bedroom_back);
+  // ...but it cannot start from nothing.
+  assert.throws(() => buildLegs({ ...CONTINUOUS, photos: {} }), /no photo for "hallway"/);
+});
+
+test("the continuous narration walks the whole route in one sentence", () => {
+  const [leg] = buildLegs(CONTINUOUS);
+  const line = legNarration(leg, CONTINUOUS);
+  assert.match(line, /^Entry via the Hallway, through the Landing, to the Back bedroom/);
+  assert.match(line, /heavy smoke on the landing/i);
+});
+
+test("one continuous clip costs well under the ceiling", () => {
+  const kling = adapterFor(DEFAULT_MODEL);
+  assert.ok(estimateUsd(kling, 1, 10) <= 1.5);
+});
+
 // --- buildings vary: a flat is one hop, a big house is ten ------------------
 
 const route = (rooms) => ({

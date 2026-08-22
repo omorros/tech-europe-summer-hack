@@ -75,6 +75,8 @@ export interface RoomGraph {
   adjacency: [string, string][];
   entry_points: string[];
   photo_room_map: Record<string, string>;
+  floorplan_width?: number;
+  floorplan_height?: number;
 }
 
 export interface Scene {
@@ -85,9 +87,32 @@ export interface Scene {
 }
 
 export interface Route {
-  waypoints: { room_id: string; x: number; y: number }[];
+  waypoints: { room_id: string | null; x: number; y: number }[];
   entry_point: string;
   rationale: string;
+}
+
+export interface BriefingLine {
+  label: string;
+  value: string;
+  source: "call" | "street" | "listing" | "plan";
+}
+
+export interface WalkthroughCoverage {
+  route_rooms: number;
+  with_imagery: number;
+  missing: string[];
+  opens_on_street_view?: boolean;
+  extra_rooms_shown?: string[];
+  photographed_total?: number;
+}
+
+export interface WalkthroughLeg {
+  index: number;
+  label?: string;
+  narration?: string;
+  status?: string;
+  video_url?: string | null;
 }
 
 export interface Briefing {
@@ -95,6 +120,9 @@ export interface Briefing {
   captions_url: string;
   duration_s: number;
   script: string;
+  lines?: BriefingLine[];
+  coverage?: WalkthroughCoverage;
+  legs?: WalkthroughLeg[];
 }
 
 export type BusEvent =
