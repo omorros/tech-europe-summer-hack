@@ -69,10 +69,19 @@ export function IncidentProvider({ children }: { children: React.ReactNode }) {
       connectBus((event: BusEvent) => {
         // A different call_id means a new incident: drop any local replay
         // still running and clear the board before the first event lands.
+        //
+        // Except the first one we ever see. On connect the backend replays the
+        // incident already in progress, and that backlog opens with the same
+        // call.incoming - treating it as new wiped the frames replayed ahead
+        // of it, so re-opening the console emptied the record it had just
+        // been sent.
         if (event.type === "call.incoming" && event.payload.call_id !== lastCallId.current) {
+          const firstEver = lastCallId.current === null;
           lastCallId.current = event.payload.call_id;
-          clear();
-          reset();
+          if (!firstEver) {
+            clear();
+            reset();
+          }
           setStarted(true);
           handedOver.current = false;
         }

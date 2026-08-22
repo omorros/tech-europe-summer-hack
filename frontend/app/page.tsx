@@ -3,29 +3,21 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { startIncident } from "@/lib/api";
-import { connectBus } from "@/lib/bus";
 import { consumeBackendParam } from "@/lib/config";
 
 export default function AddressPage() {
   const router = useRouter();
   const [address, setAddress] = useState("");
-  const [heard, setHeard] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const leaving = useRef<number | null>(null);
 
   useEffect(() => {
     consumeBackendParam();
-    const stop = connectBus((event) => {
-      if (event.type !== "call.incoming") return;
-      setHeard(true);
-      leaving.current = window.setTimeout(() => router.push("/console"), 900);
-    });
     return () => {
-      stop();
       if (leaving.current !== null) window.clearTimeout(leaving.current);
     };
-  }, [router]);
+  }, []);
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -55,7 +47,7 @@ export default function AddressPage() {
         <div className="entry__sheet">
           <header className="stamp stamp-bar">
             <span style={{ flex: 1 }}>New incident</span>
-            <span>{heard ? "from call" : "manual"}</span>
+            <span>manual</span>
           </header>
           <div style={{ padding: "1.3rem 1.3rem 1.5rem" }}>
             <h1 className="huge" style={{ margin: "0 0 1rem", color: "var(--ink)" }}>
