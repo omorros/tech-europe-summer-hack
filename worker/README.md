@@ -1,4 +1,4 @@
-# SizeUp walkthrough Worker
+# Lantern walkthrough Worker
 
 Turns a route through a building into a firefighter's-eye walkthrough video —
 front door to the seat of the fire — one clip per hop.

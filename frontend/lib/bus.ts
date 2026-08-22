@@ -13,7 +13,7 @@ import type { BusEvent } from "./types";
  * /console from a phone on the hotspot needs the real WebSocket.
  */
 
-const CHANNEL = "sizeup";
+const CHANNEL = "lantern";
 
 type Handler = (event: BusEvent) => void;
 

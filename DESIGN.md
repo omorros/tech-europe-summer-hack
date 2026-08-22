@@ -1,5 +1,5 @@
 ---
-name: SizeUp
+name: Lantern
 description: A live 999 call, printing itself as the incident record it is.
 colors:
   steel: "oklch(0.17 0.008 250)"
@@ -94,7 +94,7 @@ components:
     padding: "0.6em 0.8em"
 ---
 
-# Design System: SizeUp
+# Design System: Lantern
 
 ## Overview
 

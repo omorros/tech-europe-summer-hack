@@ -1,4 +1,4 @@
-# SizeUp — Final PRD (locked)
+# Lantern — Final PRD (locked)
 
 **Event:** {Tech: Europe} x VEED Hackathon, The Summer Lock-In, London, Sat Aug 22
 **Team:** 3 engineers (Mykyta, Oriol, Bill), all on Fable Max
@@ -18,7 +18,7 @@ The information already exists in two places nobody connects:
 1. The 999 call, full of location detail, stuck on a phone line.
 2. The inside of most UK homes, photographed in historical property listings (Rightmove/Zoopla sold-prices sections keep photos and floor plans for years).
 
-SizeUp connects them, live, during the call.
+Lantern connects them, live, during the call.
 
 ## 3. What it does (end-to-end flow)
 
@@ -102,7 +102,7 @@ Integration checkpoints every 90 minutes. Integration freeze 17:30.
 
 Setup: dispatch laptop projected, teammate with phone stands visible to the room. Hotspot networking. All demo assets for the golden property pre-generated as fallback.
 
-1. (0:00) Landing page on screen. "Firefighters enter burning buildings blind. But the outside of every UK building is on Street View and the inside of most UK homes is in an old property listing. Nobody has ever joined the two during the call. We built SizeUp."
+1. (0:00) Landing page on screen. "Firefighters enter burning buildings blind. But the outside of every UK building is on Street View and the inside of most UK homes is in an old property listing. Nobody has ever joined the two during the call. We built Lantern."
 2. (0:30) Teammate taps Call 999 on the phone and speaks, panicked: address, mum in the back bedroom, fire in the kitchen. Room hears it live.
 3. (0:45) Console: incoming call answered, transcript streaming, hazard entities firing mid-sentence. Point at ADDRESS lighting up: "that one entity just launched two things at once: Maps on the outside, an agent on the inside."
 4. (1:15) Approach panel fills first, seconds after the address is spoken: the actual building on Street View, the plot from above, access read out. "That is the building. The front door is on the left, there is no rear access, the appliance parks there. The crew has never seen this house and they already know how they are getting in."

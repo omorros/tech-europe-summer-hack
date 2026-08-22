@@ -1,4 +1,4 @@
-# SizeUp
+# Lantern
 
 **Know the building before you go through the door.**
 
@@ -16,7 +16,7 @@ fire started or which room the victim is in. Meanwhile the outside of every UK
 building is on Street View, and the inside of most UK homes is photographed in
 an old property listing. Nobody has ever joined the two during the 999 call.
 
-SizeUp does. While the caller is still on the line, the dispatch console fills
+Lantern does. While the caller is still on the line, the dispatch console fills
 with the building: the front door they will go through, the floor plan, the
 room the victim is in, a 3D reconstruction of it, and the safest route from
 the kerb. "Size-up" is the fire service term for the rapid assessment an

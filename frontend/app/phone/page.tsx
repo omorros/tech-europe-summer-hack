@@ -53,7 +53,7 @@ export default function PhonePage() {
   return (
     <main className="phone">
       <div className="stamp stamp-bar stamp-bar--steel">
-        <span style={{ flex: 1 }}>SizeUp · Caller</span>
+        <span style={{ flex: 1 }}>Lantern · Caller</span>
         <SyntheticStamp paper={false} />
       </div>
 

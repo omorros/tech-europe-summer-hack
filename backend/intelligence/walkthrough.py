@@ -1,4 +1,4 @@
-"""Client for the SizeUp walkthrough Worker.
+"""Client for the Lantern walkthrough Worker.
 
 Turns our own `Route` + `RoomGraph` + `Artifacts` into the payload the Worker
 expects, kicks off the render, and polls for clips.
