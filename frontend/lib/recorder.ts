@@ -29,7 +29,7 @@ export const RECORDER_MESSAGE: Record<RecorderFailure, string> = {
     "Microphone permission was refused. Allow it in the browser's site settings and call again.",
   "no-audio": "No microphone was found on this device.",
   backend:
-    "The backend could not transcribe. It needs OPENAI_API_KEY set in backend/.env.",
+    "The backend did not accept the audio. Check the detail: a 503 means the Worker has no BACKEND_ORIGIN, a 404 means /transcribe is not proxied, and a 500 usually means OPENAI_API_KEY is unset.",
   unknown: "Recording stopped unexpectedly.",
 };
 
@@ -115,7 +115,10 @@ export async function record({
         { method: "POST", body: blob, headers: { "content-type": mimeType } },
       );
       if (!response.ok) {
-        onFailure("backend", `${response.status}`);
+        // A Worker 503 (BACKEND_ORIGIN unset) and an asset-router 404 (path not
+        // proxied) are different problems from a missing key. Say which.
+        const body = await response.text().catch(() => "");
+        onFailure("backend", `HTTP ${response.status} ${body.slice(0, 200)}`);
         return;
       }
       const data = (await response.json()) as { text?: string };

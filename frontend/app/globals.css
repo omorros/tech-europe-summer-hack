@@ -677,9 +677,6 @@ body {
   color: var(--carbon);
 }
 
-.panel .plate {
-  height: clamp(180px, 40vh, 440px);
-}
 
 .panel .roll {
   background: transparent;
@@ -704,33 +701,65 @@ body {
   align-items: start;
 }
 
-.approach-plates .plate {
+
+
+
+
+
+
+
+/* The imagery is real now, but the sheets still have to hold it without
+   scrolling — the same caps the drawn stand-ins used to carry. */
+.approach-plates img,
+.approach-plates .missing {
   height: clamp(110px, 20vh, 240px);
+  object-fit: contain;
 }
 
-.pop[data-expanded="true"] .approach-plates .plate {
+.pop[data-expanded="true"] .approach-plates img,
+.pop[data-expanded="true"] .approach-plates .missing {
   height: clamp(150px, 28vh, 320px);
 }
 
-.panel .approach-plates .plate {
+.panel .approach-plates img,
+.panel .approach-plates .missing {
   height: clamp(140px, 26vh, 320px);
 }
 
-/* One room, sized to the box it lands in. */
-.room-open .plate {
+.room-open img {
   height: min(46vh, 460px);
+  object-fit: contain;
 }
 
-.pop .room-open .plate {
+.pop .room-open img {
   height: min(34vh, 340px);
 }
 
-.pop[data-expanded="true"] .room-open .plate {
+.pop[data-expanded="true"] .room-open img {
   height: min(58vh, 620px);
 }
 
-.rooms .plate {
+.rooms img,
+.rooms .missing {
   height: clamp(88px, 13vh, 150px);
+  object-fit: cover;
+}
+
+/* Inside a thumbnail the missing note has no room for prose. */
+.rooms .missing {
+  min-height: 0;
+  padding: 0.5rem;
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .approach-plates img,
+  .approach-plates .missing,
+  .room-open img,
+  .rooms img,
+  .rooms .missing {
+    height: auto;
+  }
 }
 
 /* On the plan sheet the drawing is the artifact and the words are support. */
@@ -854,9 +883,6 @@ body {
     right: 0.8rem;
     max-width: none;
   }
-  .panel .plate {
-    height: auto;
-  }
 }
 
 /* ---------------------------------------------------------------- entry   */
@@ -979,13 +1005,6 @@ body {
   color: var(--paper);
 }
 
-/* Plates fill a fixed frame so a sheet never crops its own evidence. */
-.plate {
-  display: block;
-  width: 100%;
-  height: auto;
-  background: var(--paper);
-}
 
 /* Legend for the plan's drawn marks. Every mark on the sheet is named. */
 .legend {
@@ -1240,4 +1259,18 @@ body {
   padding: 0.7rem 0.9rem;
   border: 1.5px solid var(--red-lit);
   color: var(--red-lit);
+}
+
+/* A file the backend expected and does not have. Says so rather than drawing
+   something in its place. */
+.missing {
+  display: grid;
+  gap: 0.3rem;
+  place-content: center;
+  text-align: center;
+  min-height: 9rem;
+  margin: 0;
+  padding: 1rem;
+  border: 1px dashed var(--paper-edge);
+  color: var(--carbon);
 }

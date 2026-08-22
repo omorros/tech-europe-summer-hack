@@ -5,8 +5,6 @@ import { useRouter } from "next/navigation";
 import { startIncident } from "@/lib/api";
 import { connectBus } from "@/lib/bus";
 import { consumeBackendParam } from "@/lib/config";
-import { DEMO_ADDRESS } from "@/lib/timeline";
-import { SyntheticStamp } from "@/components/plates";
 
 export default function AddressPage() {
   const router = useRouter();
@@ -21,7 +19,6 @@ export default function AddressPage() {
     const stop = connectBus((event) => {
       if (event.type !== "call.incoming") return;
       setHeard(true);
-      setAddress((current) => current || DEMO_ADDRESS);
       leaving.current = window.setTimeout(() => router.push("/console"), 900);
     });
     return () => {
@@ -52,7 +49,6 @@ export default function AddressPage() {
     <main className="entry">
       <div className="stamp stamp-bar stamp-bar--steel">
         <span style={{ flex: 1 }}>Lantern · Dispatch</span>
-        <SyntheticStamp paper={false} />
       </div>
 
       <div className="entry__body">

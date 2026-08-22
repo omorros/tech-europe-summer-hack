@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PhotoPlate } from "./plates";
 import { StaticImage } from "./StaticImage";
 import type { Photo } from "@/lib/types";
 
@@ -10,7 +9,7 @@ function RoomImage({ photo }: { photo: Photo }) {
     <StaticImage
       url={photo.url}
       alt={photo.caption || photo.id}
-      fallback={<PhotoPlate caption={photo.caption} />}
+      missing="This listing photograph is not on this machine."
     />
   );
 }

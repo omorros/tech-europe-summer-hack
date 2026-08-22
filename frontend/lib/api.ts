@@ -24,8 +24,16 @@ async function post(path: string, body: unknown): Promise<Response | null> {
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
-    return response.ok ? response : null;
-  } catch {
+    // A 503 from the Worker carries the reason it is unreachable; swallowing
+    // it leaves the UI saying "not reachable" when the answer is on the wire.
+    if (!response.ok) {
+      const body = await response.text().catch(() => "");
+      console.error(`POST ${path} -> HTTP ${response.status}`, body.slice(0, 300));
+      return null;
+    }
+    return response;
+  } catch (error) {
+    console.error(`POST ${path} failed`, error);
     return null;
   }
 }

@@ -26,8 +26,10 @@ export function rememberBackend(url: string): void {
 export function consumeBackendParam(): void {
   if (typeof window === "undefined") return;
   const params = new URLSearchParams(window.location.search);
-  const value = params.get("backend");
-  if (value) rememberBackend(value);
+  // `has`, not a truthiness check: `?backend=` with no value is how a phone
+  // clears a tunnel URL that has since died. Guarding on the value made the
+  // stored origin permanent, and a stale tunnel outranks same-origin forever.
+  if (params.has("backend")) rememberBackend(params.get("backend") ?? "");
 }
 
 export function backendUrl(): string {

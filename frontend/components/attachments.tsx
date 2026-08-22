@@ -4,7 +4,6 @@ import { useMemo, type ReactNode } from "react";
 import { LogRoll } from "./LogRoll";
 import { Fact } from "./Sheet";
 import { FloorPlan } from "./FloorPlan";
-import { ElevationPlate, PlotPlate } from "./plates";
 import { RoomsGallery } from "./RoomsGallery";
 import { StaticImage } from "./StaticImage";
 import type { IncidentState } from "@/lib/useIncident";
@@ -75,7 +74,7 @@ export function useAttachments(state: IncidentState): Attachment[] {
                   <StaticImage
                     url={approach.streetview[0]?.url}
                     alt={`Street View, heading ${approach.streetview[0]?.heading ?? 0}`}
-                    fallback={<ElevationPlate heading={approach.streetview[0]?.heading ?? 0} />}
+                    missing="The Street View frame is not on this machine. Re-run the approach lane to fetch it."
                   />
                 ) : (
                   <p style={{ margin: 0, color: "var(--red)" }}>
@@ -85,7 +84,7 @@ export function useAttachments(state: IncidentState): Attachment[] {
                 <StaticImage
                   url={approach.satellite_url}
                   alt="Satellite plot"
-                  fallback={<PlotPlate />}
+                  missing="The satellite tile is not on this machine."
                 />
               </div>
               <hr className="rule" />

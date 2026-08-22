@@ -158,7 +158,13 @@ export function consoleSocketOpen(): boolean {
 }
 
 if (typeof window !== "undefined") {
-  window.addEventListener("beforeunload", () => {
+  // `pagehide`, not `beforeunload`: on mobile a back-navigation restores the
+  // page from bfcache with module state intact but handlers cleared, and
+  // scheduleReconnect early-returns on an empty handler set - the console is
+  // then permanently dead until a hard reload. `persisted` tells us the page
+  // is only being frozen, so leave the handlers alone.
+  window.addEventListener("pagehide", (event) => {
+    if (event.persisted) return;
     clearReconnect();
     handlers.clear();
     socket?.close();

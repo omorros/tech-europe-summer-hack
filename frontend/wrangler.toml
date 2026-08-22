@@ -8,12 +8,34 @@ binding = "ASSETS"
 # next export writes 404.html. SPA handling would answer a mistyped URL with
 # the address-entry page and a 200, which reads as a working screen.
 not_found_handling = "404-page"
-run_worker_first = ["/ws/*", "/incident", "/incident/*", "/health", "/static/*", "/radio"]
+# Anything the Worker must proxy has to be listed here as well as in
+# worker.ts PROXY_PREFIXES. This list decides whether the Worker sees the
+# request at all; a path missing here goes to the asset router and, with
+# not_found_handling above, comes back as 404.html. That is silent: the
+# caller speaks, the audio POST 404s, and nothing reaches the backend.
+run_worker_first = [
+  "/ws/*",
+  "/incident",
+  "/incident/*",
+  "/health",
+  "/static/*",
+  "/radio",
+  "/transcribe",
+  "/transcribe/*",
+]
 
-[vars]
-# Public HTTPS origin of the FastAPI process. A trycloudflare.com tunnel URL.
-# Empty = the UI still serves; API calls 503 until you set this or pass ?backend=
-BACKEND_ORIGIN = ""
+# BACKEND_ORIGIN - the public HTTPS origin of the FastAPI process, i.e. the
+# cloudflared tunnel URL - is deliberately NOT declared here.
+#
+# `wrangler deploy` treats [vars] as the source of truth and overwrites
+# whatever is set in the dashboard. Declared empty, every automatic deploy
+# from main blanked it, and the Worker then answered every API path with its
+# "BACKEND_ORIGIN is unset" 503. Set it as a secret instead; secrets survive
+# a deploy:
+#
+#     npx wrangler secret put BACKEND_ORIGIN
+#
+# A single device can still override it with ?backend=https://...
 
 # A previous deploy from a feature branch created an IncidentHub Durable
 # Object on this Worker. main does not define that class, and Cloudflare
@@ -24,7 +46,7 @@ BACKEND_ORIGIN = ""
 # objects held transient incident state for one demo, nothing durable.
 #
 # If the Durable Object architecture comes back, add a NEW migration with a
-# later tag that re-creates the class — do not reuse or remove this one, or
+# later tag that re-creates the class - do not reuse or remove this one, or
 # the applied-tag sequence stops matching what Cloudflare has recorded.
 [[migrations]]
 tag = "v1-drop-incident-hub"

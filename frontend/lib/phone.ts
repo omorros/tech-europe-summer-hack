@@ -52,9 +52,11 @@ export function connectPhone(onClose?: () => void): Promise<PhoneSocket | null> 
     };
     socket.onclose = () => {
       window.clearTimeout(timer);
-      // Closed before it ever opened: that is a failed connect, not a drop.
+      // Closed before it ever opened is a failed connect, not a drop, and the
+      // caller has not been told the line was live. Only report a real drop.
+      const wasOpen = settled;
       finish(null);
-      onClose?.();
+      if (wasOpen) onClose?.();
     };
   });
 }

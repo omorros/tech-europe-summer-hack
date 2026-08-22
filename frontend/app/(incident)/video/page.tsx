@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useAttachments } from "@/components/attachments";
-import { ReconstructionFilm, SyntheticStamp } from "@/components/plates";
+import { SyntheticStamp } from "@/components/plates";
 import { Fact } from "@/components/Sheet";
 import { mediaUrl } from "@/lib/config";
 import { useIncidentContext } from "@/lib/incident-context";
@@ -166,8 +166,17 @@ export default function VideoPage() {
               </div>
             </div>
           ) : (
-            <div className="film-stage__media">
-              <ReconstructionFilm />
+            // A crew card with no walkthrough behind it. Drawing a room nobody
+            // photographed would be inventing the one thing this product must
+            // never invent.
+            <div className="film-stage__empty">
+              <p className="huge" style={{ margin: 0 }}>
+                No walkthrough rendered
+              </p>
+              <p className="status">
+                The crew card is ready — open it from the corner. The walk needs
+                a fal render, which has not run for this address.
+              </p>
             </div>
           )}
           {!live && (
