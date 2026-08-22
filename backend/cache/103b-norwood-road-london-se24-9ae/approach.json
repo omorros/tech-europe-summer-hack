@@ -1,0 +1,44 @@
+{
+  "lat": 51.4493727,
+  "lng": -0.1009519,
+  "streetview": [
+    {
+      "heading": 80.1,
+      "url": "/static/approach/103b-norwood-road-london-se24-9ae-1787403723-sv-0.jpg"
+    },
+    {
+      "heading": 115.1,
+      "url": "/static/approach/103b-norwood-road-london-se24-9ae-1787403723-sv-1.jpg"
+    },
+    {
+      "heading": 150.1,
+      "url": "/static/approach/103b-norwood-road-london-se24-9ae-1787403723-sv-2.jpg"
+    }
+  ],
+  "satellite_url": "/static/approach/103b-norwood-road-london-se24-9ae-1787403723-satellite.jpg",
+  "coverage": true,
+  "building_type": "Terraced house (part of a short terrace)",
+  "storeys": 2,
+  "front_door": {
+    "side": "slightly left of centre as viewed from the road",
+    "description": "White uPVC-style door, recessed under a small porch/canopy; reached via a narrow wrought\u2011iron gate and path through the front garden."
+  },
+  "access_notes": [
+    "Low brick front wall with narrow iron gate to garden",
+    "Front garden heavily overgrown; vegetation encroaches on approach path",
+    "Lamp column and two grey utility cabinets on pavement directly outside",
+    "Bus stop and shelter a few metres to the right (east) on the same frontage",
+    "Approach path appears uneven/gravelled",
+    "No hydrant marker plate visibly identifiable on posts or walls in view"
+  ],
+  "obstacles": [
+    "Overgrown shrubs/trees in front garden",
+    "Narrow gate opening between brick piers",
+    "Concrete block/plinth located on the front path area",
+    "Low brick walls at garden boundary",
+    "Street furniture on pavement (lamp post, utility cabinets, bus stop shelter)"
+  ],
+  "rear_access": false,
+  "rear_access_note": "Rear gardens extend to the railway corridor; no alley or side passage visible from street or satellite imagery.",
+  "parking": "Kerbside on Norwood Road in front of the property; bus stop bay and street furniture nearby may limit exact positioning."
+}

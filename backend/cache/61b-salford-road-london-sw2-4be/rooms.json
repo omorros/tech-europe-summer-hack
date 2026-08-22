@@ -1,0 +1,282 @@
+{
+  "rooms": [
+    {
+      "id": "bedroom-1",
+      "name": "Bedroom 1",
+      "floor": 2,
+      "polygon": [
+        [
+          10,
+          4
+        ],
+        [
+          328,
+          4
+        ],
+        [
+          328,
+          316
+        ],
+        [
+          10,
+          316
+        ]
+      ],
+      "doors": [
+        [
+          320,
+          256
+        ]
+      ],
+      "windows": [
+        [
+          160,
+          64
+        ],
+        [
+          320,
+          64
+        ]
+      ]
+    },
+    {
+      "id": "reception-room",
+      "name": "Reception Room",
+      "floor": 2,
+      "polygon": [
+        [
+          315,
+          4
+        ],
+        [
+          702,
+          4
+        ],
+        [
+          702,
+          295
+        ],
+        [
+          315,
+          295
+        ]
+      ],
+      "doors": [
+        [
+          416,
+          256
+        ]
+      ],
+      "windows": [
+        [
+          640,
+          96
+        ],
+        [
+          640,
+          192
+        ],
+        [
+          640,
+          288
+        ]
+      ]
+    },
+    {
+      "id": "bedroom-2",
+      "name": "Bedroom 2",
+      "floor": 2,
+      "polygon": [
+        [
+          10,
+          301
+        ],
+        [
+          320,
+          301
+        ],
+        [
+          320,
+          584
+        ],
+        [
+          10,
+          584
+        ]
+      ],
+      "doors": [
+        [
+          320,
+          384
+        ]
+      ],
+      "windows": [
+        [
+          96,
+          640
+        ],
+        [
+          256,
+          640
+        ]
+      ]
+    },
+    {
+      "id": "hall",
+      "name": "Hall",
+      "floor": 2,
+      "polygon": [
+        [
+          240.0,
+          216.0
+        ],
+        [
+          480.0,
+          216.0
+        ],
+        [
+          480.0,
+          504.0
+        ],
+        [
+          240.0,
+          504.0
+        ]
+      ],
+      "doors": [
+        [
+          544,
+          640
+        ],
+        [
+          512,
+          448
+        ],
+        [
+          512,
+          512
+        ],
+        [
+          416,
+          256
+        ],
+        [
+          320,
+          256
+        ],
+        [
+          320,
+          384
+        ]
+      ],
+      "windows": []
+    },
+    {
+      "id": "kitchen",
+      "name": "Kitchen",
+      "floor": 2,
+      "polygon": [
+        [
+          532.0,
+          200.0
+        ],
+        [
+          652.0,
+          200.0
+        ],
+        [
+          652.0,
+          520.0
+        ],
+        [
+          532.0,
+          520.0
+        ]
+      ],
+      "doors": [
+        [
+          512,
+          448
+        ]
+      ],
+      "windows": [
+        [
+          640,
+          384
+        ],
+        [
+          640,
+          544
+        ]
+      ]
+    },
+    {
+      "id": "bathroom",
+      "name": "Bathroom",
+      "floor": 2,
+      "polygon": [
+        [
+          480.0,
+          480.0
+        ],
+        [
+          560.0,
+          480.0
+        ],
+        [
+          560.0,
+          608.0
+        ],
+        [
+          480.0,
+          608.0
+        ]
+      ],
+      "doors": [
+        [
+          512,
+          512
+        ]
+      ],
+      "windows": []
+    }
+  ],
+  "adjacency": [
+    [
+      "hall",
+      "kitchen"
+    ],
+    [
+      "hall",
+      "bathroom"
+    ],
+    [
+      "hall",
+      "reception-room"
+    ],
+    [
+      "hall",
+      "bedroom-1"
+    ],
+    [
+      "hall",
+      "bedroom-2"
+    ]
+  ],
+  "entry_points": [
+    "hall"
+  ],
+  "photo_room_map": {
+    "photo-02": "bedroom-1",
+    "photo-04": "bedroom-2",
+    "photo-05": "kitchen",
+    "photo-06": "reception-room",
+    "photo-07": "reception-room",
+    "photo-08": "reception-room",
+    "photo-09": "kitchen",
+    "photo-10": "bedroom-1",
+    "photo-11": "reception-room"
+  },
+  "floorplan_width": 1024,
+  "floorplan_height": 746
+}

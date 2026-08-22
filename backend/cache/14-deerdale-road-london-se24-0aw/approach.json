@@ -1,0 +1,42 @@
+{
+  "lat": 51.4625013,
+  "lng": -0.0988137,
+  "streetview": [
+    {
+      "heading": 278.9,
+      "url": "/static/approach/14-deerdale-road-london-se24-0aw-1787403557-sv-0.jpg"
+    },
+    {
+      "heading": 313.9,
+      "url": "/static/approach/14-deerdale-road-london-se24-0aw-1787403557-sv-1.jpg"
+    },
+    {
+      "heading": 348.9,
+      "url": "/static/approach/14-deerdale-road-london-se24-0aw-1787403557-sv-2.jpg"
+    }
+  ],
+  "satellite_url": "/static/approach/14-deerdale-road-london-se24-0aw-1787403557-satellite.jpg",
+  "coverage": true,
+  "building_type": "Terraced house (mid-terrace)",
+  "storeys": 2,
+  "front_door": {
+    "side": "left (as seen from the road, to the left of that property\u2019s bay window, beneath the shared porch)",
+    "description": "Set behind a low brick front wall and small gate; under a small timber canopy/porch with decorative slats. Solid panel door (one shown red in imagery) with letterbox; short path from pavement with a small threshold step."
+  },
+  "access_notes": [
+    "Low brick front wall with small gate and short path to door",
+    "Narrow frontage typical of a terrace",
+    "Street furniture close to frontage: lighting/sign post and nearby telegraph/utility pole with overhead cables",
+    "On-street parking both sides may constrict carriageway width for appliances",
+    "No hydrant marker or standpipe cover clearly visible in the street views provided"
+  ],
+  "obstacles": [
+    "Wheelie bins/refuse bags in front garden areas by gates",
+    "Low brick walls and picket-style fencing",
+    "Parked vehicles along kerb",
+    "Lamp post/sign post and a telegraph pole on the pavement"
+  ],
+  "rear_access": true,
+  "rear_access_note": "Long rear garden; rear boundary appears to back onto vegetated open land. No dedicated rear alley visible from satellite view.",
+  "parking": "Kerbside on Deerdale Road immediately outside or opposite the property; residential street with parallel parking both sides."
+}
