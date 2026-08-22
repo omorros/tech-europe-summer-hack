@@ -32,7 +32,7 @@ Nobody joins the outside of the building to the inside of it *during the call*. 
 
 Hackathon build day, {Tech: Europe} x VEED, London. Backend runs on the dispatch laptop; phone and laptop share the team's own hotspot, with venue wifi used for nothing but outbound AI API calls. The console is projected and driven by Mykyta on a laptop with mouse and keyboard — it should *read* as in-vehicle emergency kit (legible at distance, legible in a dark room and under stage light), but it is not a gloved touch console and does not need touch-first ergonomics.
 
-The console has two phases and the layout changes between them. During the call it is a multi-panel console: live transcript, hazard board with entities popping in mid-sentence, approach panel (Street View + satellite + access notes), agent cam streaming the Holo agent's screenshots, floor plan with room labels, hazard pins and drawn route. When the briefing video is ready it goes full-bleed and everything else collapses into an expanding menu in the bottom-left corner — Street View, building plan, room photos, floor plan, transcript — opening as windows on top of the video.
+The console is two routes sharing one run. `/console` is the working screen during the call: a left tab rail with four attachments — record, approach, plan, rooms — and exactly one open at a time. Whatever becomes ready opens itself unless the operator chose something in the last few seconds, so the building assembles itself rather than needing a click per beat. `/video` is the crew brief with the screen and the same attachments in a corner pop-up on top of it. When the brief lands the console hands over to `/video` once; both directions are then a single control.
 
 Mykyta owns every pixel plus the transport layer, integration checkpoints every 90 minutes, the 17:30 freeze, and the submission. Oriol owns the agent and building reconstruction; Bill owns extraction, routing and the briefing. Their lanes reach the UI only as bus events.
 
@@ -44,7 +44,9 @@ Every panel must render a truthful pending state without its event ever arriving
 
 Coordinate space for every pin, polygon and waypoint is floor-plan pixel coordinates, origin top-left.
 
-Current scope: UI only, with placeholders and mocked events. The `/phone` mock call ends by parsing the spoken address into the `/` address textbox and kicking off the whole run. Real audio, real transcription and real lane data land later against the same event shapes.
+Current scope: UI only, with placeholders and mocked events. A scripted timeline replays a fabricated call against the real event shapes; `lib/bus.ts` is a same-device BroadcastChannel with the `/ws/console` swap point marked. Real audio, transcription and lane data land against the same shapes.
+
+Three contract deltas are agreed but not yet rendered, and are the first work of the merge: the route's kerb waypoint carries `room_id: null`; the floor plan's coordinate space comes from `floorplan_width` / `floorplan_height` on `rooms.graph` rather than a hardcoded viewBox; and the brief has no video or audio by default — it is an ordered playlist of walkthrough legs plus `lines` carrying a `source` per fact (`call` / `street` / `listing` / `plan`), which must be shown because the four layers are not equally trustworthy. `frontend/README.md` carries the detail; `frontend-integration.md` is the backend side of the same seam.
 
 ## Brand Commitments
 
