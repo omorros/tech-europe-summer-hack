@@ -90,7 +90,7 @@ class Scene(TypedDict):
 
 
 class Waypoint(TypedDict):
-    room_id: str
+    room_id: str | None  # None for the kerb waypoint: the route starts outside
     x: float
     y: float
 
