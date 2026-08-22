@@ -27,6 +27,7 @@ from shared.types import Artifacts, Photo
 
 from .config import HAI_API_KEY, HOLO_BASE_URL, HOLO_MODEL, STATIC_DIR
 from .golden import load_cached, save_cached, slugify
+from .reconstruct import set_address
 
 VIEWPORT = {"width": 1280, "height": 800}
 MAX_STEPS = 30
@@ -93,6 +94,9 @@ label), thought (one sentence of reasoning a bystander can follow), tool_call
 
 
 async def find_property(address: str) -> Artifacts:
+    # Reconstruction is keyed by address for cache lookups; capture it here so
+    # the wiring (Mykyta) never needs to know.
+    set_address(address)
     if HAI_API_KEY:
         try:
             artifacts = await asyncio.wait_for(_run_agent(address), timeout=MAX_SECONDS)
@@ -155,9 +159,19 @@ async def _run_agent(address: str) -> Artifacts:
                         raise RuntimeError("agent could not find the property")
                     # The browser knows where we are; the model's URL can be
                     # hallucinated, so never use it.
-                    return await _extract_artifacts(page, address, page.url)
+                    artifacts = await _extract_artifacts(page, address, page.url)
+                    if not artifacts["photos"] and not artifacts["floorplan_url"]:
+                        raise RuntimeError(
+                            "agent answered on a page with no extractable media"
+                        )
+                    return artifacts
 
-                result = await _execute(page, call)
+                try:
+                    result = await _execute(page, call)
+                except Exception as e:
+                    # Feed the failure back so Holo can self-correct instead
+                    # of the whole run dying on one bad tool call.
+                    result = f"ERROR: {e}"
                 messages.append({
                     "role": "user",
                     "content": f'<tool_output tool="{call.tool_name}">\n{result}\n</tool_output>',
@@ -215,6 +229,8 @@ async def _execute(page, call: ToolCall) -> str:
             await page.goto(a.url, wait_until="domcontentloaded")
             return f"navigated to {a.url}"
         case "click":
+            if a.x is None or a.y is None:
+                return "ERROR: click needs both x and y"
             x = int(a.x / 1000 * VIEWPORT["width"])
             y = int(a.y / 1000 * VIEWPORT["height"])
             await page.mouse.click(x, y)

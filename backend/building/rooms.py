@@ -12,6 +12,7 @@ emission publishes the image dimensions so downstream never guesses.
 Degradation: cached golden-property graph on any failure.
 """
 
+import asyncio
 import base64
 import io
 import json
@@ -244,48 +245,10 @@ def _render_overlay(floorplan_path, plan: dict) -> str:
     return "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode()
 
 
-# ---------------------------------------------------------------- pipeline
-
-async def build_room_graph(artifacts: Artifacts) -> RoomGraph:
-    try:
-        graph = await _build_live(artifacts)
-        save_cached(artifacts["address"], "rooms", graph)
-    except Exception as e:
-        print(f"[rooms] live pipeline failed: {e!r}, trying cache")
-        graph = load_cached(artifacts["address"], "rooms") or {
-            "rooms": [], "adjacency": [], "entry_points": [],
-            "photo_room_map": {}, "floorplan_width": 0, "floorplan_height": 0,
-        }
-    bus.emit("rooms.graph", graph)
-    return graph
-
-
-async def _build_live(artifacts: Artifacts) -> RoomGraph:
-    if not artifacts["floorplan_url"]:
-        raise ValueError("no floorplan in artifacts")
-    oai = AsyncOpenAI()
-
-    floorplan_path = _local_path(artifacts["floorplan_url"])
+def _compute_geometry(floorplan_path, plan: dict, width: int, height: int) -> list[dict]:
+    """CPU-bound: seal walls, then flood-fill or recentre each room's box."""
     with Image.open(floorplan_path) as im:
-        width, height = im.size
         sealed = _sealed_walls(im)
-
-    resp = await oai.chat.completions.create(
-        model=OPENAI_VISION_MODEL,
-        reasoning_effort="low",
-        messages=[{
-            "role": "user",
-            "content": [
-                {"type": "text", "text": LABEL_PROMPT.format(width=width, height=height)},
-                _gridded_image_part(floorplan_path),
-            ],
-        }],
-        response_format={
-            "type": "json_schema",
-            "json_schema": {"name": "floorplan_labels", "strict": True, "schema": LABEL_SCHEMA},
-        },
-    )
-    plan = json.loads(resp.choices[0].message.content)
 
     rooms = []
     for r in plan["rooms"]:
@@ -316,6 +279,60 @@ async def _build_live(artifacts: Artifacts) -> RoomGraph:
             "polygon": [[x0, y0], [x1, y0], [x1, y1], [x0, y1]],
             "doors": r["doors"], "windows": r["windows"],
         })
+    return rooms
+
+
+# ---------------------------------------------------------------- pipeline
+
+async def build_room_graph(artifacts: Artifacts) -> RoomGraph:
+    try:
+        graph = await _build_live(artifacts)
+        save_cached(artifacts["address"], "rooms", graph)
+    except Exception as e:
+        print(f"[rooms] live pipeline failed: {e!r}, trying cache")
+        graph = load_cached(artifacts.get("address", ""), "rooms") or {
+            "rooms": [], "adjacency": [], "entry_points": [],
+            "photo_room_map": {}, "floorplan_width": 0, "floorplan_height": 0,
+        }
+    bus.emit("rooms.graph", graph)
+    return graph
+
+
+async def _build_live(artifacts: Artifacts) -> RoomGraph:
+    if not artifacts["floorplan_url"]:
+        raise ValueError("no floorplan in artifacts")
+    oai = AsyncOpenAI(timeout=90.0)  # degrade to cache, never hang the stage
+
+    floorplan_path = _local_path(artifacts["floorplan_url"])
+    with Image.open(floorplan_path) as im:
+        width, height = im.size
+
+    resp = await oai.chat.completions.create(
+        model=OPENAI_VISION_MODEL,
+        reasoning_effort="low",
+        messages=[{
+            "role": "user",
+            "content": [
+                {"type": "text", "text": LABEL_PROMPT.format(width=width, height=height)},
+                _gridded_image_part(floorplan_path),
+            ],
+        }],
+        response_format={
+            "type": "json_schema",
+            "json_schema": {"name": "floorplan_labels", "strict": True, "schema": LABEL_SCHEMA},
+        },
+    )
+    plan = json.loads(resp.choices[0].message.content)
+
+    # Rank filters and floodfills are seconds of CPU: off the event loop so
+    # the console's WebSocket fan-out never freezes mid-demo.
+    rooms = await asyncio.to_thread(_compute_geometry, floorplan_path, plan, width, height)
+
+    # The model can hallucinate ids: everything downstream is filtered
+    # against the rooms that actually exist.
+    valid_rooms = {r["id"] for r in rooms}
+    adjacency = [p for p in plan["adjacency"] if p[0] in valid_rooms and p[1] in valid_rooms]
+    entry_points = [e for e in plan["entry_points"] if e in valid_rooms]
 
     photo_room_map: dict[str, str] = {}
     if artifacts["photos"]:
@@ -335,7 +352,6 @@ async def _build_live(artifacts: Artifacts) -> RoomGraph:
             },
         )
         matched = json.loads(resp.choices[0].message.content)["matches"]
-        valid_rooms = {r["id"] for r in rooms}
         photo_room_map = {
             m["photo_id"]: m["room_id"] for m in matched
             if m["room_id"] in valid_rooms
@@ -343,8 +359,8 @@ async def _build_live(artifacts: Artifacts) -> RoomGraph:
 
     return {
         "rooms": rooms,
-        "adjacency": plan["adjacency"],
-        "entry_points": plan["entry_points"],
+        "adjacency": adjacency,
+        "entry_points": entry_points,
         "photo_room_map": photo_room_map,
         "floorplan_width": width,
         "floorplan_height": height,

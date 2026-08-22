@@ -24,16 +24,16 @@
       ],
       "doors": [
         [
-          384,
-          384
+          352,
+          320
         ],
         [
-          512,
-          384
+          544,
+          320
         ],
         [
-          416,
-          704
+          448,
+          640
         ]
       ],
       "windows": []
@@ -62,11 +62,11 @@
       ],
       "doors": [
         [
-          416,
-          704
+          448,
+          960
         ],
         [
-          384,
+          512,
           896
         ]
       ],
@@ -83,36 +83,32 @@
       "floor": 1,
       "polygon": [
         [
-          448.0,
-          976.0
+          458,
+          1054
         ],
         [
-          672.0,
-          976.0
+          713,
+          1054
         ],
         [
-          672.0,
-          1328.0
+          713,
+          1186
         ],
         [
-          448.0,
-          1328.0
+          458,
+          1186
         ]
       ],
       "doors": [
         [
-          448,
+          512,
           1152
-        ],
-        [
-          640,
-          1088
         ]
       ],
       "windows": [
         [
           640,
-          1216
+          1152
         ]
       ]
     },
@@ -122,171 +118,180 @@
       "floor": 1,
       "polygon": [
         [
-          450,
-          1594
+          409,
+          1410
         ],
         [
-          663,
-          1594
+          697,
+          1410
         ],
         [
-          663,
-          1754
+          697,
+          1600
         ],
         [
-          450,
-          1754
+          409,
+          1600
         ]
       ],
       "doors": [
         [
-          480,
-          1408
+          512,
+          1472
         ]
       ],
       "windows": [
         [
-          544,
-          1664
-        ],
-        [
           592,
-          1680
+          1664
         ],
         [
-          640,
+          624,
           1664
+        ],
+        [
+          656,
+          1632
         ]
       ]
     },
     {
-      "id": "first-floor-landing",
-      "name": "Landing / Hall",
+      "id": "bathroom",
+      "name": "BATHROOM",
       "floor": 1,
       "polygon": [
         [
-          336.0,
-          1024.0
+          61,
+          1371
         ],
         [
-          432.0,
-          1024.0
+          243,
+          1371
         ],
         [
-          432.0,
-          1344.0
+          243,
+          1681
         ],
         [
-          336.0,
-          1344.0
+          61,
+          1681
+        ]
+      ],
+      "doors": [
+        [
+          256,
+          1600
+        ]
+      ],
+      "windows": [
+        [
+          128,
+          1600
+        ]
+      ]
+    },
+    {
+      "id": "hallway-first",
+      "name": "HALLWAY / LANDING",
+      "floor": 1,
+      "polygon": [
+        [
+          368.0,
+          1008.0
+        ],
+        [
+          528.0,
+          1008.0
+        ],
+        [
+          528.0,
+          1392.0
+        ],
+        [
+          368.0,
+          1392.0
+        ]
+      ],
+      "doors": [
+        [
+          448,
+          640
+        ],
+        [
+          448,
+          960
+        ],
+        [
+          512,
+          1152
+        ],
+        [
+          512,
+          1472
+        ],
+        [
+          256,
+          1600
+        ]
+      ],
+      "windows": []
+    },
+    {
+      "id": "stairs-first",
+      "name": "STAIRS (DN)",
+      "floor": 1,
+      "polygon": [
+        [
+          320.0,
+          1088.0
+        ],
+        [
+          384.0,
+          1088.0
+        ],
+        [
+          384.0,
+          1152.0
+        ],
+        [
+          320.0,
+          1152.0
         ]
       ],
       "doors": [
         [
           384,
-          896
-        ],
-        [
-          448,
-          1152
-        ],
-        [
-          480,
-          1408
-        ],
-        [
-          416,
-          704
+          1120
         ]
       ],
       "windows": []
     },
     {
-      "id": "entrance-hall",
-      "name": "Entrance Hall / Stairs (UP)",
+      "id": "entrance-hall-gf",
+      "name": "ENTRANCE HALL (UP)",
       "floor": 0,
       "polygon": [
         [
           96.0,
-          1072.0
+          1088.0
         ],
         [
           192.0,
-          1072.0
+          1088.0
         ],
         [
           192.0,
-          1296.0
+          1408.0
         ],
         [
           96.0,
-          1296.0
+          1408.0
         ]
       ],
       "doors": [
         [
-          192,
+          128,
           1280
-        ]
-      ],
-      "windows": []
-    },
-    {
-      "id": "wc",
-      "name": "WC",
-      "floor": 0,
-      "polygon": [
-        [
-          61,
-          1372
-        ],
-        [
-          243,
-          1372
-        ],
-        [
-          243,
-          1680
-        ],
-        [
-          61,
-          1680
-        ]
-      ],
-      "doors": [
-        [
-          192,
-          1408
-        ]
-      ],
-      "windows": []
-    },
-    {
-      "id": "bathroom",
-      "name": "BATHROOM",
-      "floor": 0,
-      "polygon": [
-        [
-          61,
-          1372
-        ],
-        [
-          243,
-          1372
-        ],
-        [
-          243,
-          1680
-        ],
-        [
-          61,
-          1680
-        ]
-      ],
-      "doors": [
-        [
-          192,
-          1568
         ]
       ],
       "windows": []
@@ -294,32 +299,38 @@
   ],
   "adjacency": [
     [
-      "first-floor-landing",
-      "kitchen"
+      "dining-room",
+      "hallway-first"
     ],
     [
-      "first-floor-landing",
-      "dining-room"
+      "kitchen",
+      "hallway-first"
     ],
     [
-      "first-floor-landing",
-      "bedroom-1"
+      "bedroom-1",
+      "hallway-first"
     ],
     [
-      "first-floor-landing",
-      "bedroom-2"
+      "bedroom-2",
+      "hallway-first"
     ],
     [
-      "entrance-hall",
-      "wc"
+      "bathroom",
+      "hallway-first"
     ],
     [
-      "entrance-hall",
-      "bathroom"
+      "stairs-first",
+      "hallway-first"
+    ],
+    [
+      "stairs-first",
+      "entrance-hall-gf"
     ]
   ],
   "entry_points": [
-    "entrance-hall"
+    "entrance-hall-gf",
+    "dining-room",
+    "kitchen"
   ],
   "photo_room_map": {
     "photo-01": "dining-room",
@@ -329,7 +340,9 @@
     "photo-06": "kitchen",
     "photo-07": "bedroom-1",
     "photo-08": "bedroom-2",
-    "photo-10": "bathroom"
+    "photo-09": "dining-room",
+    "photo-10": "bathroom",
+    "photo-12": "dining-room"
   },
   "floorplan_width": 772,
   "floorplan_height": 2048

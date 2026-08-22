@@ -98,7 +98,12 @@ def _b64(path: str) -> str:
 async def find_approach(address: str) -> Approach:
     try:
         approach = await _find_approach_live(address)
-        save_cached(address, "approach", approach)
+        if approach["coverage"]:
+            save_cached(address, "approach", approach)
+        else:
+            # A transient no-coverage result must not shadow good cached data
+            # or poison the golden cache.
+            approach = load_cached(address, "approach") or approach
     except Exception as e:
         print(f"[approach] live pipeline failed: {e!r}, trying cache")
         cached = load_cached(address, "approach")
@@ -182,7 +187,7 @@ async def _find_approach_live(address: str) -> Approach:
         }
 
     # 3. Vision read of the imagery
-    oai = AsyncOpenAI()
+    oai = AsyncOpenAI(timeout=60.0)  # degrade to cache, never hang the panel
     images = [{"type": "image_url", "image_url": {"url": _b64(sv["url"])}} for sv in streetview]
     images.append({"type": "image_url", "image_url": {"url": _b64(satellite_url)}})
     resp = await oai.chat.completions.create(
