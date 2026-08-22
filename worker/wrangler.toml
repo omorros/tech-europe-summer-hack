@@ -1,0 +1,23 @@
+name = "sizeup-walkthrough"
+main = "src/index.ts"
+compatibility_date = "2026-08-01"
+
+# Ed25519 in WebCrypto (used to verify fal's webhook signatures) needs the
+# Node compat layer on Workers.
+compatibility_flags = ["nodejs_compat"]
+
+# Create with:  npx wrangler kv namespace create SIZEUP_JOBS
+# then paste the id here.
+[[kv_namespaces]]
+binding = "SIZEUP_JOBS"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+[vars]
+# Set to the deployed workers.dev URL after the first deploy so fal's webhooks
+# come back to the right origin.
+PUBLIC_URL = ""
+VIDEO_MODEL = "fal-ai/kling-video/o1/image-to-video"
+
+# Secrets — never put these in this file:
+#   npx wrangler secret put FAL_KEY
+#   npx wrangler secret put WORKER_TOKEN

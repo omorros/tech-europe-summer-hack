@@ -1,0 +1,250 @@
+"""Client for the SizeUp walkthrough Worker.
+
+Turns our own `Route` + `RoomGraph` + `Artifacts` into the payload the Worker
+expects, kicks off the render, and polls for clips.
+
+The walkthrough is the evidence-backed half of the briefing. Firefighters
+given an explicit *route* outperform those given a floor plan, because under
+stress they should not be planning a path from a drawing (Safety Science
+2021, replicated 2023); knowing where the casualty is cut search time 34% in
+a 2025 Fire study. So the console shows the walk, not just the plan.
+
+Coordinate space and room ids come straight from Oriol's RoomGraph, and the
+room order comes from our own planned route — the entry point we chose, in
+the order a crew would actually walk it.
+"""
+
+from __future__ import annotations
+
+import base64
+import mimetypes
+from typing import Any
+
+from shared import bus
+from shared.types import Approach, Artifacts, Route, RoomGraph
+
+from .config import WORKER_TOKEN, WORKER_URL, resolve_static
+
+
+def available() -> bool:
+    return bool(WORKER_URL)
+
+
+# Photos larger than this are sent as-is and will fail if the URL is not
+# publicly reachable — better a loud failure than a silently truncated image.
+# Kling caps input images at 10MB; base64 inflates by ~37%.
+_MAX_INLINE_BYTES = 7_000_000
+
+
+def _as_public_image(url: str) -> str:
+    """Make an image reachable by fal.
+
+    The building lane emits `/static/…` paths, and the backend runs on the
+    dispatch laptop behind a phone hotspot — there is no inbound route, so fal
+    can never fetch those. Inline the bytes as a data URI instead. At ~180KB a
+    photo this is cheap, and it means the walkthrough works with no public
+    file hosting anywhere in the stack.
+    """
+    path = resolve_static(url)
+    if path is None:
+        return url                      # already absolute, or already a data URI
+    if path.stat().st_size > _MAX_INLINE_BYTES:
+        return url
+    mime = mimetypes.guess_type(path.name)[0] or "image/jpeg"
+    return f"data:{mime};base64,{base64.b64encode(path.read_bytes()).decode()}"
+
+
+def _headers() -> dict[str, str]:
+    headers = {"Content-Type": "application/json"}
+    if WORKER_TOKEN:
+        headers["Authorization"] = f"Bearer {WORKER_TOKEN}"
+    return headers
+
+
+def _httpx():
+    import httpx
+    return httpx
+
+
+def _street_frame(approach: Approach | None,
+                  artifacts: Artifacts | None = None,
+                  graph: RoomGraph | None = None) -> str | None:
+    """An image of the building's exterior to open the walk on.
+
+    First choice is Street View — the building lane pulls several headings
+    centred on the one computed from the panorama toward the property, so the
+    middle frame is the front elevation.
+
+    But `backend/.gitignore` excludes `static/approach/`, so on a fresh clone
+    the cached approach.json references Street View files that are not there.
+    Second choice is therefore a listing photo that the room matcher left
+    unmapped: those are committed, and on a Rightmove listing an unmatched
+    photo is almost always the facade (verified on 22 Kellett Road — both
+    unmapped photos are street-level shots of the front of the house).
+    """
+    for view in _centre_first((approach or {}).get("streetview") or []):
+        url = view.get("url")
+        if url and (resolve_static(url) or "://" in url):
+            return url
+
+    mapped = set((graph or {}).get("photo_room_map", {}))
+    for photo in (artifacts or {}).get("photos", []):
+        if photo.get("id") in mapped or photo.get("room_id"):
+            continue
+        if photo.get("url") and resolve_static(photo["url"]):
+            return photo["url"]
+    return None
+
+
+def _centre_first(views: list[dict]) -> list[dict]:
+    """Middle heading first — it is the one aimed at the property."""
+    if not views:
+        return []
+    middle = len(views) // 2
+    order = sorted(range(len(views)), key=lambda i: abs(i - middle))
+    return [views[i] for i in order]
+
+
+def build_payload(route: Route, graph: RoomGraph, artifacts: Artifacts, *,
+                  approach: Approach | None = None,
+                  hazards: list[str] | None = None,
+                  building_description: str = "",
+                  seconds_per_leg: int | None = None) -> dict[str, Any]:
+    """Route + room graph + listing photos -> Worker request.
+
+    Rooms with no photograph are dropped rather than guessed at: every leg
+    needs a real image at both ends, which is the constraint that stops the
+    model inventing a building.
+
+    Estate agents photograph rooms they are selling, not circulation — so
+    hallways, landings and stairs, which is exactly what a route walks
+    through, are usually missing. Two consequences handled here:
+
+      * The walk opens on the **Street View frame** of the real building, so
+        it starts at the kerb like the route does, and so a property whose
+        only interior match is the target room still has two real frames.
+      * `coverage` reports how many route rooms actually had imagery, so the
+        console can say "3 of 5 rooms" instead of implying a complete tour.
+    """
+    rooms = {room["id"]: room for room in graph.get("rooms", [])}
+
+    photo_map = graph.get("photo_room_map", {}) or {}
+    photo_by_room: dict[str, str] = {}
+    for photo in artifacts.get("photos", []):
+        # `id` is in the locked Photo type but this crosses a lane boundary,
+        # so tolerate its absence rather than crashing the whole briefing.
+        room_id = photo.get("room_id") or photo_map.get(photo.get("id") or "")
+        if room_id and room_id not in photo_by_room and photo.get("url"):
+            photo_by_room[room_id] = photo["url"]
+
+    route_rooms = [w["room_id"] for w in route.get("waypoints", []) if w.get("room_id")]
+
+    ordered: list[dict[str, Any]] = []
+    photos: dict[str, str] = {}
+
+    street = _street_frame(approach, artifacts, graph)
+    if street:
+        ordered.append({"room_id": "_street", "name": "Front of the building",
+                        "floor": 0})
+        photos["_street"] = _as_public_image(street)
+
+    for room_id in route_rooms:
+        if room_id not in photo_by_room:
+            continue
+        if ordered and ordered[-1]["room_id"] == room_id:
+            continue
+        room = rooms.get(room_id, {})
+        ordered.append({
+            "room_id": room_id,
+            "name": room.get("name", room_id).title(),
+            "floor": room.get("floor", 0),
+        })
+        photos[room_id] = _as_public_image(photo_by_room[room_id])
+
+    covered = [r["room_id"] for r in ordered if r["room_id"] != "_street"]
+    payload: dict[str, Any] = {
+        "address": artifacts.get("address", ""),
+        "building_description": building_description,
+        "floorplan_description": describe_floorplan(graph),
+        "route": ordered,
+        "photos": photos,
+        "hazards": hazards or [],
+        "coverage": {
+            "route_rooms": len(route_rooms),
+            "with_imagery": len(covered),
+            "missing": [rooms.get(r, {}).get("name", r) for r in route_rooms
+                        if r not in photo_by_room],
+            "opens_on_street_view": bool(street),
+        },
+    }
+    if seconds_per_leg is not None:
+        payload["seconds_per_leg"] = seconds_per_leg
+    return payload
+
+
+def describe_floorplan(graph: RoomGraph) -> str:
+    """Plain-language layout, floor by floor, plus what connects to what."""
+    floors: dict[int, list[str]] = {}
+    for room in graph.get("rooms", []):
+        floors.setdefault(room.get("floor", 0), []).append(room["name"].lower())
+
+    parts = []
+    for floor in sorted(floors):
+        label = "Ground floor" if floor == 0 else f"Floor {floor}"
+        parts.append(f"{label}: {', '.join(floors[floor])}.")
+
+    names = {room["id"]: room["name"].lower() for room in graph.get("rooms", [])}
+    links = [f"{names.get(a, a)}–{names.get(b, b)}"
+             for a, b in graph.get("adjacency", [])[:12]]
+    if links:
+        parts.append("Connections: " + ", ".join(links) + ".")
+    return " ".join(parts)
+
+
+async def start(payload: dict) -> dict:
+    """POST /walkthrough — returns immediately with a job id."""
+    if not available():
+        raise RuntimeError("SIZEUP_WORKER_URL is not set")
+    if len(payload.get("route", [])) < 2:
+        coverage = payload.get("coverage", {})
+        raise RuntimeError(
+            "not enough real imagery for a walkthrough: "
+            f"{coverage.get('with_imagery', 0)} of {coverage.get('route_rooms', 0)} "
+            "route rooms are photographed and there is no Street View frame to "
+            "open on. Every leg needs a real image at both ends."
+        )
+    async with _httpx().AsyncClient(timeout=60.0) as client:
+        response = await client.post(f"{WORKER_URL}/walkthrough",
+                                     headers=_headers(), json=payload)
+        response.raise_for_status()
+        job = response.json()
+
+    bus.emit("status", {"stage": "briefing", "state": "running",
+                        "message": f"walkthrough queued: {job.get('leg_count')} legs"})
+    return job
+
+
+async def poll(job_id: str) -> dict:
+    """GET /walkthrough/{id} — legs fill in as fal finishes them."""
+    async with _httpx().AsyncClient(timeout=60.0) as client:
+        response = await client.get(f"{WORKER_URL}/walkthrough/{job_id}",
+                                    headers=_headers())
+        response.raise_for_status()
+        return response.json()
+
+
+async def wait(job_id: str, *, timeout_s: float = 600.0, poll_s: float = 5.0,
+               on_progress=None) -> dict:
+    import asyncio
+    import time
+
+    deadline = time.time() + timeout_s
+    while True:
+        job = await poll(job_id)
+        if on_progress:
+            on_progress(job)
+        if job.get("status") in ("COMPLETED", "PARTIAL"):
+            return job
+        if time.time() > deadline:
+            return job                    # hand back whatever landed; never hang the console
+        await asyncio.sleep(poll_s)

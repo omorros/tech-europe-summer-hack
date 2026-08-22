@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.env.local
+.pioneer-state.json
+seed-labelled.json
+eval-comparison.json
+node_modules/
+.next/
+.fal-spend.json
+.pioneer-state.json
+.wrangler/
+worker/.dev.vars
+# generated briefing captions (backend/.gitignore already covers agent/approach)
+backend/static/briefing/
