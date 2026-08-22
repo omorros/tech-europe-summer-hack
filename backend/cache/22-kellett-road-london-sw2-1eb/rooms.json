@@ -1,0 +1,336 @@
+{
+  "rooms": [
+    {
+      "id": "dining-room",
+      "name": "DINING ROOM",
+      "floor": 1,
+      "polygon": [
+        [
+          277,
+          263
+        ],
+        [
+          684,
+          263
+        ],
+        [
+          684,
+          811
+        ],
+        [
+          277,
+          811
+        ]
+      ],
+      "doors": [
+        [
+          384,
+          384
+        ],
+        [
+          512,
+          384
+        ],
+        [
+          416,
+          704
+        ]
+      ],
+      "windows": []
+    },
+    {
+      "id": "kitchen",
+      "name": "KITCHEN",
+      "floor": 1,
+      "polygon": [
+        [
+          281,
+          873
+        ],
+        [
+          520,
+          873
+        ],
+        [
+          520,
+          1066
+        ],
+        [
+          281,
+          1066
+        ]
+      ],
+      "doors": [
+        [
+          416,
+          704
+        ],
+        [
+          384,
+          896
+        ]
+      ],
+      "windows": [
+        [
+          256,
+          896
+        ]
+      ]
+    },
+    {
+      "id": "bedroom-1",
+      "name": "BEDROOM",
+      "floor": 1,
+      "polygon": [
+        [
+          448.0,
+          976.0
+        ],
+        [
+          672.0,
+          976.0
+        ],
+        [
+          672.0,
+          1328.0
+        ],
+        [
+          448.0,
+          1328.0
+        ]
+      ],
+      "doors": [
+        [
+          448,
+          1152
+        ],
+        [
+          640,
+          1088
+        ]
+      ],
+      "windows": [
+        [
+          640,
+          1216
+        ]
+      ]
+    },
+    {
+      "id": "bedroom-2",
+      "name": "BEDROOM",
+      "floor": 1,
+      "polygon": [
+        [
+          450,
+          1594
+        ],
+        [
+          663,
+          1594
+        ],
+        [
+          663,
+          1754
+        ],
+        [
+          450,
+          1754
+        ]
+      ],
+      "doors": [
+        [
+          480,
+          1408
+        ]
+      ],
+      "windows": [
+        [
+          544,
+          1664
+        ],
+        [
+          592,
+          1680
+        ],
+        [
+          640,
+          1664
+        ]
+      ]
+    },
+    {
+      "id": "first-floor-landing",
+      "name": "Landing / Hall",
+      "floor": 1,
+      "polygon": [
+        [
+          336.0,
+          1024.0
+        ],
+        [
+          432.0,
+          1024.0
+        ],
+        [
+          432.0,
+          1344.0
+        ],
+        [
+          336.0,
+          1344.0
+        ]
+      ],
+      "doors": [
+        [
+          384,
+          896
+        ],
+        [
+          448,
+          1152
+        ],
+        [
+          480,
+          1408
+        ],
+        [
+          416,
+          704
+        ]
+      ],
+      "windows": []
+    },
+    {
+      "id": "entrance-hall",
+      "name": "Entrance Hall / Stairs (UP)",
+      "floor": 0,
+      "polygon": [
+        [
+          96.0,
+          1072.0
+        ],
+        [
+          192.0,
+          1072.0
+        ],
+        [
+          192.0,
+          1296.0
+        ],
+        [
+          96.0,
+          1296.0
+        ]
+      ],
+      "doors": [
+        [
+          192,
+          1280
+        ]
+      ],
+      "windows": []
+    },
+    {
+      "id": "wc",
+      "name": "WC",
+      "floor": 0,
+      "polygon": [
+        [
+          61,
+          1372
+        ],
+        [
+          243,
+          1372
+        ],
+        [
+          243,
+          1680
+        ],
+        [
+          61,
+          1680
+        ]
+      ],
+      "doors": [
+        [
+          192,
+          1408
+        ]
+      ],
+      "windows": []
+    },
+    {
+      "id": "bathroom",
+      "name": "BATHROOM",
+      "floor": 0,
+      "polygon": [
+        [
+          61,
+          1372
+        ],
+        [
+          243,
+          1372
+        ],
+        [
+          243,
+          1680
+        ],
+        [
+          61,
+          1680
+        ]
+      ],
+      "doors": [
+        [
+          192,
+          1568
+        ]
+      ],
+      "windows": []
+    }
+  ],
+  "adjacency": [
+    [
+      "first-floor-landing",
+      "kitchen"
+    ],
+    [
+      "first-floor-landing",
+      "dining-room"
+    ],
+    [
+      "first-floor-landing",
+      "bedroom-1"
+    ],
+    [
+      "first-floor-landing",
+      "bedroom-2"
+    ],
+    [
+      "entrance-hall",
+      "wc"
+    ],
+    [
+      "entrance-hall",
+      "bathroom"
+    ]
+  ],
+  "entry_points": [
+    "entrance-hall"
+  ],
+  "photo_room_map": {
+    "photo-01": "dining-room",
+    "photo-03": "dining-room",
+    "photo-04": "dining-room",
+    "photo-05": "kitchen",
+    "photo-06": "kitchen",
+    "photo-07": "bedroom-1",
+    "photo-08": "bedroom-2",
+    "photo-10": "bathroom"
+  },
+  "floorplan_width": 772,
+  "floorplan_height": 2048
+}
