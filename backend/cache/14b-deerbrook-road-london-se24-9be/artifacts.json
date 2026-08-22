@@ -1,0 +1,79 @@
+{
+  "address": "14b Deerbrook Road, London SE24 9BE",
+  "listing_url": "https://www.rightmove.co.uk/house-prices/details/6f6e89d9-bfcc-4c49-aece-d3d98a2b7cfa",
+  "floorplan_url": "/static/artifacts/14b-deerbrook-road-london-se24-9be/floorplan.png",
+  "photos": [
+    {
+      "id": "photo-01",
+      "url": "/static/artifacts/14b-deerbrook-road-london-se24-9be/photo-01.jpg",
+      "caption": "",
+      "room_id": null
+    },
+    {
+      "id": "photo-02",
+      "url": "/static/artifacts/14b-deerbrook-road-london-se24-9be/photo-02.jpg",
+      "caption": "",
+      "room_id": null
+    },
+    {
+      "id": "photo-03",
+      "url": "/static/artifacts/14b-deerbrook-road-london-se24-9be/photo-03.jpg",
+      "caption": "",
+      "room_id": null
+    },
+    {
+      "id": "photo-04",
+      "url": "/static/artifacts/14b-deerbrook-road-london-se24-9be/photo-04.jpg",
+      "caption": "",
+      "room_id": null
+    },
+    {
+      "id": "photo-05",
+      "url": "/static/artifacts/14b-deerbrook-road-london-se24-9be/photo-05.jpg",
+      "caption": "",
+      "room_id": null
+    },
+    {
+      "id": "photo-06",
+      "url": "/static/artifacts/14b-deerbrook-road-london-se24-9be/photo-06.jpg",
+      "caption": "",
+      "room_id": null
+    },
+    {
+      "id": "photo-07",
+      "url": "/static/artifacts/14b-deerbrook-road-london-se24-9be/photo-07.jpg",
+      "caption": "",
+      "room_id": null
+    },
+    {
+      "id": "photo-08",
+      "url": "/static/artifacts/14b-deerbrook-road-london-se24-9be/photo-08.jpg",
+      "caption": "",
+      "room_id": null
+    },
+    {
+      "id": "photo-09",
+      "url": "/static/artifacts/14b-deerbrook-road-london-se24-9be/photo-09.jpg",
+      "caption": "",
+      "room_id": null
+    },
+    {
+      "id": "photo-10",
+      "url": "/static/artifacts/14b-deerbrook-road-london-se24-9be/photo-10.jpg",
+      "caption": "",
+      "room_id": null
+    },
+    {
+      "id": "photo-11",
+      "url": "/static/artifacts/14b-deerbrook-road-london-se24-9be/photo-11.jpg",
+      "caption": "",
+      "room_id": null
+    },
+    {
+      "id": "photo-12",
+      "url": "/static/artifacts/14b-deerbrook-road-london-se24-9be/photo-12.jpg",
+      "caption": "",
+      "room_id": null
+    }
+  ]
+}

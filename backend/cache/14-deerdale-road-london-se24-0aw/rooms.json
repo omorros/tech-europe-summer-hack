@@ -1,0 +1,370 @@
+{
+  "rooms": [
+    {
+      "id": "reception-room",
+      "name": "Reception Room",
+      "floor": 0,
+      "polygon": [
+        [
+          219,
+          743
+        ],
+        [
+          356,
+          743
+        ],
+        [
+          356,
+          853
+        ],
+        [
+          219,
+          853
+        ]
+      ],
+      "doors": [
+        [
+          448,
+          848
+        ]
+      ],
+      "windows": [
+        [
+          256,
+          896
+        ],
+        [
+          320,
+          896
+        ]
+      ]
+    },
+    {
+      "id": "hallway",
+      "name": "Hallway",
+      "floor": 0,
+      "polygon": [
+        [
+          448.0,
+          384.0
+        ],
+        [
+          512.0,
+          384.0
+        ],
+        [
+          512.0,
+          896.0
+        ],
+        [
+          448.0,
+          896.0
+        ]
+      ],
+      "doors": [
+        [
+          512,
+          832
+        ],
+        [
+          512,
+          544
+        ],
+        [
+          448,
+          848
+        ],
+        [
+          448,
+          704
+        ],
+        [
+          448,
+          592
+        ],
+        [
+          448,
+          608
+        ],
+        [
+          448,
+          304
+        ],
+        [
+          448,
+          352
+        ]
+      ],
+      "windows": []
+    },
+    {
+      "id": "bedroom-1",
+      "name": "Bedroom",
+      "floor": 0,
+      "polygon": [
+        [
+          208.0,
+          640.0
+        ],
+        [
+          400.0,
+          640.0
+        ],
+        [
+          400.0,
+          768.0
+        ],
+        [
+          208.0,
+          768.0
+        ]
+      ],
+      "doors": [
+        [
+          448,
+          704
+        ]
+      ],
+      "windows": [
+        [
+          256,
+          704
+        ]
+      ]
+    },
+    {
+      "id": "kitchen",
+      "name": "Kitchen",
+      "floor": 0,
+      "polygon": [
+        [
+          304.0,
+          528.0
+        ],
+        [
+          432.0,
+          528.0
+        ],
+        [
+          432.0,
+          656.0
+        ],
+        [
+          304.0,
+          656.0
+        ]
+      ],
+      "doors": [
+        [
+          448,
+          592
+        ]
+      ],
+      "windows": []
+    },
+    {
+      "id": "pantry",
+      "name": "Pantry",
+      "floor": 0,
+      "polygon": [
+        [
+          256.0,
+          576.0
+        ],
+        [
+          320.0,
+          576.0
+        ],
+        [
+          320.0,
+          640.0
+        ],
+        [
+          256.0,
+          640.0
+        ]
+      ],
+      "doors": [
+        [
+          320,
+          608
+        ]
+      ],
+      "windows": []
+    },
+    {
+      "id": "bathroom",
+      "name": "Bathroom",
+      "floor": 0,
+      "polygon": [
+        [
+          192,
+          211
+        ],
+        [
+          292,
+          211
+        ],
+        [
+          292,
+          521
+        ],
+        [
+          192,
+          521
+        ]
+      ],
+      "doors": [
+        [
+          320,
+          304
+        ]
+      ],
+      "windows": [
+        [
+          256,
+          288
+        ]
+      ]
+    },
+    {
+      "id": "bedroom-2",
+      "name": "Bedroom",
+      "floor": 0,
+      "polygon": [
+        [
+          384.0,
+          256.0
+        ],
+        [
+          512.0,
+          256.0
+        ],
+        [
+          512.0,
+          384.0
+        ],
+        [
+          384.0,
+          384.0
+        ]
+      ],
+      "doors": [
+        [
+          448,
+          352
+        ]
+      ],
+      "windows": [
+        [
+          512,
+          320
+        ]
+      ]
+    },
+    {
+      "id": "shed",
+      "name": "Shed (Outbuilding 1)",
+      "floor": 0,
+      "polygon": [
+        [
+          240.0,
+          32.0
+        ],
+        [
+          368.0,
+          32.0
+        ],
+        [
+          368.0,
+          160.0
+        ],
+        [
+          240.0,
+          160.0
+        ]
+      ],
+      "doors": [
+        [
+          320,
+          192
+        ]
+      ],
+      "windows": []
+    },
+    {
+      "id": "bike-shed",
+      "name": "Bike Shed (Outbuilding 2)",
+      "floor": 0,
+      "polygon": [
+        [
+          640.0,
+          832.0
+        ],
+        [
+          768.0,
+          832.0
+        ],
+        [
+          768.0,
+          896.0
+        ],
+        [
+          640.0,
+          896.0
+        ]
+      ],
+      "doors": [
+        [
+          640,
+          864
+        ]
+      ],
+      "windows": []
+    }
+  ],
+  "adjacency": [
+    [
+      "hallway",
+      "reception-room"
+    ],
+    [
+      "hallway",
+      "bedroom-1"
+    ],
+    [
+      "hallway",
+      "kitchen"
+    ],
+    [
+      "hallway",
+      "pantry"
+    ],
+    [
+      "hallway",
+      "bathroom"
+    ],
+    [
+      "hallway",
+      "bedroom-2"
+    ]
+  ],
+  "entry_points": [
+    "hallway",
+    "shed",
+    "bike-shed"
+  ],
+  "photo_room_map": {
+    "photo-02": "reception-room",
+    "photo-04": "bedroom-1",
+    "photo-05": "kitchen",
+    "photo-06": "kitchen",
+    "photo-07": "reception-room",
+    "photo-09": "bedroom-1",
+    "photo-10": "bedroom-2",
+    "photo-11": "bedroom-2",
+    "photo-12": "hallway"
+  },
+  "floorplan_width": 862,
+  "floorplan_height": 1170
+}

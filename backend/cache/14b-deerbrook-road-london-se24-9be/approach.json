@@ -1,0 +1,42 @@
+{
+  "lat": 51.44314319999999,
+  "lng": -0.1067525,
+  "streetview": [
+    {
+      "heading": 207.3,
+      "url": "/static/approach/14b-deerbrook-road-london-se24-9be-1787403650-sv-0.jpg"
+    },
+    {
+      "heading": 242.3,
+      "url": "/static/approach/14b-deerbrook-road-london-se24-9be-1787403650-sv-1.jpg"
+    },
+    {
+      "heading": 277.3,
+      "url": "/static/approach/14b-deerbrook-road-london-se24-9be-1787403650-sv-2.jpg"
+    }
+  ],
+  "satellite_url": "/static/approach/14b-deerbrook-road-london-se24-9be-1787403650-satellite.jpg",
+  "coverage": true,
+  "building_type": "Terraced house",
+  "storeys": 3,
+  "front_door": {
+    "side": "right",
+    "description": "Arched recessed doorway, appears set back from small front garden; door seen painted dark green; 2\u20133 steps up from path behind a low front wall."
+  },
+  "access_notes": [
+    "Narrow frontage with low brick/rendered wall and short path from pavement.",
+    "2\u20133 steps up to main threshold.",
+    "Permit parking signpost on pavement near frontage.",
+    "Telecoms/utility cabinet on pavement by the frontage marked \u201c15\u201d.",
+    "No hydrant marker or standpipe plate visible in the images."
+  ],
+  "obstacles": [
+    "Wheelie bins at the frontage.",
+    "Telecoms/utility cabinet on pavement.",
+    "Parked vehicles along kerb.",
+    "Timber/telegraph pole and street lighting column along pavement."
+  ],
+  "rear_access": false,
+  "rear_access_note": "Rear gardens back directly onto other properties\u2019 gardens; no alley or side passage visible from road or satellite view.",
+  "parking": "On-street parking bays on Deerbrook Road directly outside; an appliance could stop kerbside space permitting."
+}

@@ -1,0 +1,44 @@
+{
+  "lat": 51.4408565,
+  "lng": -0.1329616,
+  "streetview": [
+    {
+      "heading": 111.3,
+      "url": "/static/approach/61b-salford-road-london-sw2-4be-1787403799-sv-0.jpg"
+    },
+    {
+      "heading": 146.3,
+      "url": "/static/approach/61b-salford-road-london-sw2-4be-1787403799-sv-1.jpg"
+    },
+    {
+      "heading": 181.3,
+      "url": "/static/approach/61b-salford-road-london-sw2-4be-1787403799-sv-2.jpg"
+    }
+  ],
+  "satellite_url": "/static/approach/61b-salford-road-london-sw2-4be-1787403799-satellite.jpg",
+  "coverage": true,
+  "building_type": "End-terraced house",
+  "storeys": 3,
+  "front_door": {
+    "side": "Side (Salford Road elevation)",
+    "description": "Access appears via a small white timber pedestrian gate set in a tall white timber fence; the gate is marked \u201c61b.\u201d The actual dwelling door is set back inside and not visible from the pavement."
+  },
+  "access_notes": [
+    "Corner/end plot at a road junction",
+    "Tall white timber fence enclosing side garden along Salford Road",
+    "Pedestrian gate in fence marked 61b",
+    "Vegetation/hedge overhanging near the gate line",
+    "Parking zone sign pole on pavement immediately by the gate",
+    "Pavement level access; no external steps visible from street",
+    "No hydrant marker or standpipe observed"
+  ],
+  "obstacles": [
+    "Tall timber fence",
+    "Dense vegetation/hedge",
+    "Signpost on pavement by gate",
+    "Parked cars along kerb"
+  ],
+  "rear_access": true,
+  "rear_access_note": "Side gate off Salford Road leads into side garden which appears to provide a route toward the rear; no separate rear alley visible.",
+  "parking": "Kerbside parking bays on Salford Road directly outside the property; additional kerbside space on the cross street at the junction."
+}
