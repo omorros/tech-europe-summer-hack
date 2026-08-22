@@ -1332,3 +1332,33 @@ body {
     min-width: 0;
   }
 }
+
+/* The draggable Street View. Sized like the stills so the sheet still fits. */
+.pano {
+  margin: 0;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.pano iframe {
+  display: block;
+  width: 100%;
+  height: clamp(200px, 34vh, 420px);
+  border: 1px solid var(--paper-edge);
+  background: var(--paper);
+}
+
+.pop .pano iframe {
+  height: clamp(160px, 30vh, 320px);
+}
+
+.pop[data-expanded="true"] .pano iframe {
+  height: clamp(240px, 52vh, 560px);
+}
+
+.pano__hint {
+  font-size: var(--t-margin);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--carbon);
+}

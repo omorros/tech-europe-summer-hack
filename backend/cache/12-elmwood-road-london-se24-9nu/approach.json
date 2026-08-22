@@ -1,0 +1,44 @@
+{
+  "lat": 51.45572319999999,
+  "lng": -0.0926621,
+  "streetview": [
+    {
+      "heading": 38.2,
+      "url": "/static/approach/12-elmwood-road-london-se24-9nu-1787422156-sv-0.jpg"
+    },
+    {
+      "heading": 73.2,
+      "url": "/static/approach/12-elmwood-road-london-se24-9nu-1787422156-sv-1.jpg"
+    },
+    {
+      "heading": 108.2,
+      "url": "/static/approach/12-elmwood-road-london-se24-9nu-1787422156-sv-2.jpg"
+    }
+  ],
+  "satellite_url": "/static/approach/12-elmwood-road-london-se24-9nu-1787422156-satellite.jpg",
+  "coverage": true,
+  "building_type": "Terraced (end-terrace) house",
+  "storeys": 3,
+  "front_door": {
+    "side": "not visible",
+    "description": "Main entrance not visible in these images. Street-facing access seen is a timber gate set in a high brick wall on the side elevation."
+  },
+  "access_notes": [
+    "High brick boundary wall to street with a narrow timber gate on the side elevation",
+    "Wide, level pavement",
+    "Lamp post and short bollard positioned by the gate",
+    "Corner plot at a junction",
+    "Green street cabinet on pavement near the corner",
+    "On-street parking along the kerb",
+    "No hydrant marker or standpipe plate observed"
+  ],
+  "obstacles": [
+    "Lamp post directly in front of the side gate",
+    "Short bollard next to the gate",
+    "Green utility/street cabinet near the corner",
+    "Parked vehicles at kerbside"
+  ],
+  "rear_access": true,
+  "rear_access_note": "Side gate in brick wall appears to lead to the side/rear garden. Satellite view shows a rear garden backing onto other gardens with no alley or open land.",
+  "parking": "Kerbside on Elmwood Road adjacent to the property or on the side street at the corner if space is clear."
+}

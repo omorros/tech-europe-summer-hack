@@ -6,6 +6,7 @@ import { Fact } from "./Sheet";
 import { FloorPlan } from "./FloorPlan";
 import { RoomsGallery } from "./RoomsGallery";
 import { StaticImage } from "./StaticImage";
+import { StreetPano } from "./StreetPano";
 import type { IncidentState } from "@/lib/useIncident";
 
 export interface Attachment {
@@ -69,6 +70,14 @@ export function useAttachments(state: IncidentState): Attachment[] {
         render: () =>
           approach && (
             <>
+              {/* Draggable first: the stills are evidence, this is the look
+                  around a commander actually wants on arrival. */}
+              <StreetPano
+                lat={approach.lat}
+                lng={approach.lng}
+                heading={approach.streetview[0]?.heading}
+              />
+              <hr className="rule" />
               <div className="approach-plates">
                 {approach.coverage ? (
                   <StaticImage

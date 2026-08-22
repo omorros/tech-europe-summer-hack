@@ -89,9 +89,8 @@ export default function AddressPage() {
                   {busy ? "Opening…" : "Open console"}
                 </button>
                 <span style={{ color: "var(--carbon)" }}>
-                  {heard
-                    ? "Address taken from the call. Opening the console."
-                    : "Or take the call — open /phone on a handset."}
+                  Any UK address. The street is read in seconds; a listing, if
+                  this property ever had one, follows.
                 </span>
               </div>
               {error && (

@@ -22,9 +22,10 @@ from building.config import CACHE_DIR, STATIC_DIR
 from building.golden import load_cached, save_cached, slugify
 from building.reconstruct import set_address
 from intelligence import make_briefing, on_transcript, plan_route
-from intelligence import director, walkthrough
+from intelligence import director, streetwalk, walkthrough
 from intelligence.extractor import reset as reset_extractor
 from intelligence.route import _match_room
+from intelligence.walkthrough import _as_public_image
 from shared import bus
 
 CALL_LINES = [
@@ -36,6 +37,10 @@ CALL_LINES = [
 ]
 
 DEFAULT_ADDRESS = "22 Kellett Road, London SW2 1EB"
+
+# How long the console waits on the H agent before briefing from the street
+# alone. It drives a real browser; a slow search must not hold the screen.
+AGENT_TIMEOUT = float(os.environ.get("LANTERN_AGENT_TIMEOUT", "150"))
 
 AGENT_STUB_STEPS = (
     ("navigate", "Opening the sold-prices search"),
@@ -329,11 +334,32 @@ class Orchestrator:
             await self.end_call()
 
     async def _run_lanes(self, generation: int, address: str) -> None:
+        """Street first, listing second.
+
+        The approach is two Google calls and lands in seconds for any address
+        in the country. The agent drives a real browser through Rightmove and
+        can take minutes, or find nothing at all - most homes were never
+        listed. Waiting for it before showing anything meant an unknown
+        address sat blank forever, so the street briefs on its own and the
+        listing enriches it if it arrives.
+        """
         set_address(address)
-        await asyncio.gather(
-            self._approach_job(generation, address),
-            self._property_job(generation, address),
-        )
+        agent = self._spawn("agent", self._property_job(generation, address))
+        await self._approach_job(generation, address)
+        if not self._alive(generation):
+            return
+
+        # Something real on the screen, now, from the street alone.
+        await self._try_briefing()
+        self._start_walkthrough(generation)
+
+        try:
+            await asyncio.wait_for(asyncio.shield(agent), timeout=AGENT_TIMEOUT)
+        except asyncio.TimeoutError:
+            bus.emit("status", {"stage": "agent", "state": "error",
+                                "message": f"No listing after {AGENT_TIMEOUT:.0f}s - "
+                                           "briefing from the street only"})
+            return
         if not self._alive(generation) or not self.artifacts:
             return
 
@@ -343,7 +369,9 @@ class Orchestrator:
         await self._scene_job(generation)
         await self._try_route()
         if self._alive(generation):
-            await self._try_briefing()
+            # A route changes the card and the walk: both are worth redoing.
+            self._walk_started = False
+            await self._try_briefing(force=True)
 
     @staticmethod
     def _approach_images_present(approach: dict) -> bool:
@@ -460,7 +488,11 @@ class Orchestrator:
             bus.emit("status", {"stage": "route", "state": "error", "message": str(exc)[:200]})
 
     def _needs_brief(self, force: bool) -> bool:
-        if not self.route:
+        # The route is the best card, but not the only one. Most addresses have
+        # no historical listing, so no floor plan and no route - and a crew
+        # still needs what the street shows: the building, the door, the
+        # access. Brief on whatever has landed.
+        if not (self.route or self.approach):
             return False
         if not self._briefed:
             return True
@@ -538,10 +570,16 @@ class Orchestrator:
         stitched together: a crew watching the approach should see one walk,
         not a playlist that cuts every few seconds.
         """
-        if not (self.graph and self.artifacts and self.route):
-            return
         address = self.address or DEFAULT_ADDRESS
         fire_room = self._fire_room()
+
+        # No floor plan, no route: everything a full walk needs comes from a
+        # listing this property may never have had. The street frame is still
+        # real, and one image is all the model needs, so render the approach
+        # rather than leaving the screen black.
+        if not (self.graph and self.artifacts and self.route):
+            await self._street_walk(generation, address)
+            return
 
         # A render costs real money and takes minutes, so a walk we have
         # already paid for at this address is reused as-is.
@@ -605,6 +643,36 @@ class Orchestrator:
         self._publish_walk(generation, legs)
         bus.emit("status", {"stage": "briefing", "state": "done",
                             "message": "Walkthrough ready"})
+
+    async def _street_walk(self, generation: int, address: str) -> None:
+        """A walk in from the kerb, for an address with no listing behind it."""
+        cached = load_cached(address, "streetwalk")
+        if isinstance(cached, dict) and cached.get("legs"):
+            self._publish_walk(generation, cached["legs"])
+            bus.emit("status", {"stage": "briefing", "state": "done",
+                                "message": "Cached approach"})
+            return
+        approach = self.approach or {}
+        frames = approach.get("streetview") or []
+        if not frames or not streetwalk.available():
+            return
+        # The middle heading is the one aimed at the property.
+        frame = frames[len(frames) // 2].get("url")
+        if not frame:
+            return
+        leg = await streetwalk.render(
+            _as_public_image(frame),
+            building=approach.get("building_type", ""),
+            front_door=(approach.get("front_door") or {}).get("description", ""),
+            hazards=[e["value"] for e in self.entities
+                     if e["type"] in ("FIRE_ORIGIN", "HAZARD_TYPE")],
+        )
+        if not leg or not self._alive(generation):
+            return
+        save_cached(address, "streetwalk", {"legs": [leg]})
+        self._publish_walk(generation, [leg])
+        bus.emit("status", {"stage": "briefing", "state": "done",
+                            "message": "Approach rendered"})
 
     def _publish_walk(self, generation: int, legs: list[dict]) -> None:
         """Put the clips on the crew card the console is already showing."""
