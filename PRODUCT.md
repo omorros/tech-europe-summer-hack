@@ -46,7 +46,7 @@ Coordinate space for every pin, polygon and waypoint is floor-plan pixel coordin
 
 Current scope: the console renders live bus events from FastAPI (`/ws/console`, `POST /incident`) and falls back to the scripted timeline when the backend is down. Placeholder plates remain until a surface carries a real `url`.
 
-The three contract deltas from the merge are rendered: the route's kerb waypoint carries `room_id: null`; the floor plan's coordinate space comes from `floorplan_width` / `floorplan_height` on `rooms.graph`; the brief is `lines` with a `source` per fact (`call` / `street` / `listing` / `plan`), plus walkthrough `coverage` so a short clip is not read as a complete tour. `frontend/README.md` carries the detail; `frontend-integration.md` is the backend side of the same seam.
+The three contract deltas from the merge are rendered: the route's kerb waypoint carries `room_id: null`; the floor plan's coordinate space comes from `floorplan_width` / `floorplan_height` on `rooms.graph`; the brief is `lines` with a `source` per fact (`call` / `street` / `listing` / `plan`), plus walkthrough `coverage` so a short clip is not read as a complete tour. `frontend/README.md` carries the detail; `docs/frontend-integration.md` is the backend side of the same seam.
 
 ## Brand Commitments
 

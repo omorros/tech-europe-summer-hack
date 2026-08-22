@@ -11,7 +11,7 @@ interface Env {
   BACKEND_ORIGIN: string;
 }
 
-const PROXY_PREFIXES = ["/ws/", "/incident", "/health", "/static/", "/radio"];
+const PROXY_PREFIXES = ["/ws/", "/incident", "/health", "/static/", "/radio", "/transcribe"];
 
 const UNSET_MESSAGE =
   "BACKEND_ORIGIN is unset. Run a cloudflared tunnel to the FastAPI process " +

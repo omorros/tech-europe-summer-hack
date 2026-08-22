@@ -4,32 +4,59 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { emitRemote, now } from "@/lib/bus";
 import { consumeBackendParam } from "@/lib/config";
 import { connectPhone, type PhoneSocket } from "@/lib/phone";
-import { DEMO_ADDRESS } from "@/lib/timeline";
+import {
+  listen,
+  speechAvailable,
+  SPEECH_MESSAGE,
+  type SpeechFailure,
+  type SpeechSession,
+} from "@/lib/speech";
+import {
+  record,
+  recorderAvailable,
+  RECORDER_MESSAGE,
+  type RecorderFailure,
+  type RecorderSession,
+} from "@/lib/recorder";
 import { SyntheticStamp } from "@/components/plates";
 
 type CallState = "idle" | "dialling" | "connected" | "ended";
 
-const SCRIPT = [
-  "Fire! There's a fire!",
-  `It's ${DEMO_ADDRESS.replace(",", " —")}`,
-  "The kitchen's on fire, there's smoke everywhere down here",
-  "My mum's upstairs, she's in the back bedroom, she can't get down",
-  "We can't get out the back, the bins are against the door",
-];
+interface Heard {
+  seq: number;
+  text: string;
+  isFinal: boolean;
+}
 
 export default function PhonePage() {
   const [call, setCall] = useState<CallState>("idle");
-  const [cue, setCue] = useState(0);
   const [seconds, setSeconds] = useState(0);
   const [live, setLive] = useState(false);
+  const [listening, setListening] = useState(false);
+  const [heard, setHeard] = useState<Heard[]>([]);
+  const [failure, setFailure] = useState<SpeechFailure | null>(null);
+  const [recorderFailure, setRecorderFailure] = useState<RecorderFailure | null>(null);
+  const [pending, setPending] = useState(false);
+
   const callId = useRef("999-0417");
   const phone = useRef<PhoneSocket | null>(null);
+  const speech = useRef<SpeechSession | null>(null);
+  const recorder = useRef<RecorderSession | null>(null);
+  /** Said before the socket finished opening. Flushed in order once it does. */
+  const backlog = useRef<Heard[]>([]);
+  const socketSettled = useRef(false);
 
-  /** One cue, either up the socket or across the tabs on this machine. */
-  const say = useCallback((index: number) => {
-    const text = SCRIPT[index];
+  /** Whatever the caller just said, up the socket or across the tabs. */
+  const sayIt = useCallback((seq: number, text: string, isFinal: boolean) => {
+    // Chrome will not start recognition from an async continuation, so we
+    // listen on the click and the socket connects underneath. Anything said in
+    // that window waits here rather than being lost.
+    if (!socketSettled.current) {
+      backlog.current.push({ seq, text, isFinal });
+      return;
+    }
     if (phone.current) {
-      phone.current.send({ type: "transcript", seq: index, text, is_final: true });
+      phone.current.send({ type: "transcript", seq, text, is_final: isFinal });
       return;
     }
     emitRemote({
@@ -37,9 +64,9 @@ export default function PhonePage() {
       ts: now(),
       payload: {
         call_id: callId.current,
-        seq: index,
+        seq,
         text,
-        is_final: true,
+        is_final: isFinal,
         speaker: "caller",
       },
     });
@@ -48,6 +75,8 @@ export default function PhonePage() {
   useEffect(() => {
     consumeBackendParam();
     return () => {
+      speech.current?.stop();
+      recorder.current?.stop();
       phone.current?.close();
       phone.current = null;
     };
@@ -62,44 +91,92 @@ export default function PhonePage() {
   useEffect(() => {
     if (call !== "dialling") return;
     let cancelled = false;
-    const id = window.setTimeout(() => {
-      void (async () => {
-        const socket = await connectPhone(() => setLive(false));
-        if (cancelled) {
-          socket?.close();
-          return;
-        }
-        if (socket) {
-          phone.current = socket;
-          socket.send({ type: "call.start", address: DEMO_ADDRESS });
-          socket.send({ type: "transcript", seq: 0, text: SCRIPT[0], is_final: true });
-          setLive(true);
-        } else {
-          setLive(false);
-          emitRemote({
-            type: "call.incoming",
-            ts: now(),
-            payload: { call_id: callId.current },
-          });
-          emitRemote({
-            type: "call.answered",
-            ts: now(),
-            payload: { call_id: callId.current },
-          });
-          say(0);
-        }
-        setCall("connected");
-        setSeconds(0);
-        setCue(0);
-      })();
-    }, 1600);
+
+    void (async () => {
+      const socket = await connectPhone(() => setLive(false));
+      if (cancelled) {
+        socket?.close();
+        return;
+      }
+
+      if (socket) {
+        phone.current = socket;
+        // No address: the caller is about to say one, and the backend starts
+        // the lanes off the ADDRESS entity the extractor pulls out of it.
+        socket.send({ type: "call.start" });
+        setLive(true);
+
+        // The backend is up, so OpenAI does the listening. It transcribes the
+        // chunk and ingests it itself, which is what fills the record — the
+        // handset only shows the caller what was heard.
+        recorder.current = await record({
+          onText: (text, seq) => {
+            setHeard((current) => [...current, { seq, text, isFinal: true }].slice(-6));
+          },
+          onFailure: (reason) => setRecorderFailure(reason),
+          onRecordingChange: setListening,
+          onPendingChange: setPending,
+        });
+      } else {
+        // No backend to transcribe with: fall back to the browser's own
+        // recogniser and the same-device bus, so the demo still runs.
+        setLive(false);
+        emitRemote({ type: "call.incoming", ts: now(), payload: { call_id: callId.current } });
+        emitRemote({ type: "call.answered", ts: now(), payload: { call_id: callId.current } });
+        speech.current = listen({
+          onFragment: ({ seq, text, isFinal }) => {
+            sayIt(seq, text, isFinal);
+            setHeard((current) => {
+              const next = current.filter((line) => line.seq !== seq);
+              next.push({ seq, text, isFinal });
+              return next.slice(-6);
+            });
+          },
+          onFailure: (reason) => setFailure(reason),
+          onListeningChange: setListening,
+        });
+      }
+
+      socketSettled.current = true;
+      const waiting = backlog.current;
+      backlog.current = [];
+      waiting.forEach((line) => sayIt(line.seq, line.text, line.isFinal));
+
+      setCall("connected");
+      setSeconds(0);
+    })();
+
     return () => {
       cancelled = true;
-      window.clearTimeout(id);
     };
-  }, [call, say]);
+  }, [call, sayIt]);
+
+  /** The microphone opens on the click itself — see sayIt. */
+  const placeCall = () => {
+    // Both ears need a secure context and a microphone; if neither is possible
+    // there is no call to place, and the reason is worth saying out loud.
+    const noRecorder = recorderAvailable();
+    const noSpeech = speechAvailable();
+    if (noRecorder && noSpeech) {
+      setRecorderFailure(noRecorder);
+      return;
+    }
+    setFailure(null);
+    setRecorderFailure(null);
+    setHeard([]);
+    backlog.current = [];
+    socketSettled.current = false;
+    setCall("dialling");
+  };
 
   const end = () => {
+    speech.current?.stop();
+    speech.current = null;
+    recorder.current?.stop();
+    recorder.current = null;
+    setListening(false);
+    socketSettled.current = false;
+    backlog.current = [];
     setCall("ended");
     if (phone.current) {
       phone.current.send({ type: "call.end" });
@@ -109,6 +186,8 @@ export default function PhonePage() {
       emitRemote({ type: "call.ended", ts: now(), payload: { call_id: callId.current } });
     }
   };
+
+  const clock = `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 
   return (
     <main className="phone">
@@ -125,9 +204,13 @@ export default function PhonePage() {
               Emergency
             </h1>
             <p style={{ color: "var(--steel-dim)", margin: 0 }}>
-              Tap to place the 999 call. The dispatch console picks it up and
-              starts the run.
+              Tap to place the 999 call, then speak. Say the address and what is
+              happening — the console hears it as you say it.
             </p>
+            {recorderFailure && (
+              <p className="phone__failure">{RECORDER_MESSAGE[recorderFailure]}</p>
+            )}
+            {failure && <p className="phone__failure">{SPEECH_MESSAGE[failure]}</p>}
           </>
         )}
 
@@ -143,15 +226,30 @@ export default function PhonePage() {
         {call === "connected" && (
           <>
             <p className="stamp" style={{ color: "var(--hivis)", margin: 0 }}>
-              Connected · {String(Math.floor(seconds / 60)).padStart(2, "0")}:
-              {String(seconds % 60).padStart(2, "0")}
+              Connected · {clock}
+              {listening ? " · listening" : " · paused"}
+              {pending ? " · transcribing" : ""}
             </p>
-            <h1 className="huge" style={{ margin: 0 }}>
-              {SCRIPT[cue]}
-            </h1>
-            <p style={{ color: "var(--steel-dim)", margin: 0 }}>
-              Cue {cue + 1} of {SCRIPT.length} — say this, then tap next.
-            </p>
+            {heard.length === 0 ? (
+              <h1 className="huge" style={{ margin: 0 }}>
+                Speak
+              </h1>
+            ) : (
+              <div className="phone__heard">
+                {heard.map((line) => (
+                  <p
+                    key={line.seq}
+                    className={line.isFinal ? "phone__line" : "phone__line phone__line--partial"}
+                  >
+                    {line.text}
+                  </p>
+                ))}
+              </div>
+            )}
+            {recorderFailure && (
+              <p className="phone__failure">{RECORDER_MESSAGE[recorderFailure]}</p>
+            )}
+            {failure && <p className="phone__failure">{SPEECH_MESSAGE[failure]}</p>}
           </>
         )}
 
@@ -161,8 +259,7 @@ export default function PhonePage() {
               Call ended
             </h1>
             <p style={{ color: "var(--steel-dim)", margin: 0 }}>
-              {String(Math.floor(seconds / 60)).padStart(2, "0")}:
-              {String(seconds % 60).padStart(2, "0")} — the console keeps running.
+              {clock} — the console keeps running.
             </p>
           </>
         )}
@@ -170,7 +267,7 @@ export default function PhonePage() {
 
       <div className="phone__foot">
         {call === "idle" && (
-          <button type="button" className="dial" onClick={() => setCall("dialling")}>
+          <button type="button" className="dial" onClick={placeCall}>
             Call 999
           </button>
         )}
@@ -181,19 +278,19 @@ export default function PhonePage() {
         )}
         {call === "connected" && (
           <>
-            <button
-              type="button"
-              className="control control--solid"
-              style={{ width: "100%", padding: "1.1em" }}
-              disabled={cue >= SCRIPT.length - 1}
-              onClick={() => {
-                const next = Math.min(cue + 1, SCRIPT.length - 1);
-                setCue(next);
-                say(next);
-              }}
-            >
-              Next line
-            </button>
+            {!live && (failure === "needs-gesture" || !listening) && (
+              <button
+                type="button"
+                className="control control--solid"
+                style={{ width: "100%", padding: "1.1em" }}
+                onClick={() => {
+                  setFailure(null);
+                  speech.current?.resume();
+                }}
+              >
+                Keep listening
+              </button>
+            )}
             <button type="button" className="dial dial--end" onClick={end}>
               End call
             </button>
@@ -207,7 +304,9 @@ export default function PhonePage() {
             onClick={() => {
               setCall("idle");
               setSeconds(0);
-              setCue(0);
+              setHeard([]);
+              setFailure(null);
+              setRecorderFailure(null);
               setLive(false);
             }}
           >

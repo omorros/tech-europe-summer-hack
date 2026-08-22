@@ -45,11 +45,11 @@ function PlanLegend() {
 export function useAttachments(state: IncidentState): Attachment[] {
   const { approach, artifacts, graph, route, scene, entities } = state;
 
-  // What was extracted, plus whatever is printing right now. The second half
-  // matters: without it the record is a list of facts that appear after the
-  // sentence is over, and the carbon-to-ink strike can never be seen.
+  // The whole conversation, minus the machine's own chatter. A real caller
+  // says plenty that carries no entity ("hello", "please hurry", "I can hear
+  // her"), and a record that hides it is not a record of the call.
   const extracted = useMemo(
-    () => state.lines.filter((line) => line.entities.length > 0 || !line.isFinal),
+    () => state.lines.filter((line) => line.kind === "transcript" || line.kind === "radio"),
     [state.lines],
   );
 

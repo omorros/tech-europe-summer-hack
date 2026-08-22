@@ -114,9 +114,28 @@ Worker: see `worker/README.md`. Lane details: `backend/intelligence/README.md`
 and `frontend/README.md`.
 
 Every stage degrades to cached results for the properties in
-`test-properties.md`, so the pipeline demos end to end even with no keys.
+`docs/test-properties.md`, so the pipeline demos end to end even with no keys.
 
 ## Team
 
 Built in one day at the {Tech: Europe} x VEED Summer Lock-In, London, by
 Mykyta, Oriol and Bill.
+
+## Docs
+
+Everything written down lives in [`docs/`](docs/), except the two files tooling
+resolves at the repo root (`PRODUCT.md`, `DESIGN.md`).
+
+| Document | What it is |
+|---|---|
+| [`docs/lantern-final-prd.md`](docs/lantern-final-prd.md) | The master PRD. Locked. |
+| [`docs/prd-mykyta-call-and-ui.md`](docs/prd-mykyta-call-and-ui.md) | Call system and UI lane |
+| [`docs/prd-oriol-agent-and-building.md`](docs/prd-oriol-agent-and-building.md) | Agent and building lane |
+| [`docs/prd-bill-intelligence-and-media.md`](docs/prd-bill-intelligence-and-media.md) | Intelligence and media lane |
+| [`docs/INTEGRATION.md`](docs/INTEGRATION.md) | How the pieces are actually wired, and the commands to drive them |
+| [`docs/frontend-integration.md`](docs/frontend-integration.md) | The handoff note written *before* the lanes were joined |
+| [`frontend/README.md`](frontend/README.md) | Frontend → backend: routes, the bus swap point, placeholder replace list |
+| [`docs/test-properties.md`](docs/test-properties.md) | Vetted golden properties for the demo |
+| [`docs/bill_worklog.md`](docs/bill_worklog.md) | Bill's lane work log |
+| [`docs/BILL-RENAME-NOTES.md`](docs/BILL-RENAME-NOTES.md) | What the SizeUp → Lantern rename deliberately left alone |
+| [`PRODUCT.md`](PRODUCT.md) · [`DESIGN.md`](DESIGN.md) | Product truth and the visual system |

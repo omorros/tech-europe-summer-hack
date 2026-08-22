@@ -1,6 +1,6 @@
 # Frontend — what it is and how to wire it to the backend
 
-Companion to `../frontend-integration.md` (Bill's notes, backend → frontend).
+Companion to `../docs/frontend-integration.md` (Bill's notes, backend → frontend).
 This is the other direction: what exists on the frontend today, where the
 seams are, and exactly what must change when the real lanes land.
 

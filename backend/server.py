@@ -15,12 +15,13 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from call.orchestrator import DEFAULT_ADDRESS, orchestrator
+from call.transcribe import TranscriptionUnavailable, transcribe
 from intelligence.config import BACKEND_DIR
 from shared import bus
 
@@ -136,6 +137,28 @@ async def _console_reader(ws: WebSocket) -> None:
             text = _text_of(message)
             if text:
                 await orchestrator.on_radio(text)
+
+
+@app.post("/transcribe")
+async def transcribe_chunk(request: Request, seq: int = 0, mime: str = "audio/webm") -> dict:
+    """One recorded chunk of the caller's voice.
+
+    Raw bytes in the body rather than multipart, so the backend needs no extra
+    dependency. The text is ingested here, which is what puts it on the bus and
+    into the console's record; the handset gets it back only to show the caller
+    what was heard.
+    """
+    audio = await request.body()
+    if not audio:
+        return {"text": "", "ingested": False}
+    try:
+        text = await transcribe(audio, mime=mime)
+    except TranscriptionUnavailable as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
+    if not text:
+        return {"text": "", "ingested": False}
+    await orchestrator.ingest_transcript(text, seq=seq, is_final=True)
+    return {"text": text, "ingested": True}
 
 
 @app.websocket("/ws/phone")

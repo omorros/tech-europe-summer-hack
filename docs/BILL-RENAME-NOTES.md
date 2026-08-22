@@ -34,8 +34,8 @@ them alone because they are your documents.
 
 ## What I did rename
 
-All four PRDs (and `sizeup-final-prd.md` → `lantern-final-prd.md`), `PRODUCT.md`,
-`DESIGN.md`, `frontend/README.md`, `test-properties.md`, every string in
+All four PRDs (and `sizeup-final-prd.md` → `lantern-final-prd.md`), `../PRODUCT.md`,
+`../DESIGN.md`, `../frontend/README.md`, `test-properties.md`, every string in
 `frontend/`, and the BroadcastChannel name in `frontend/lib/bus.ts`.
 
 The name rationale was rewritten rather than substituted — the old line explained

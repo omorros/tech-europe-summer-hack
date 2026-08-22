@@ -1211,3 +1211,33 @@ body {
   background: color-mix(in oklch, var(--hivis) 84%, var(--paper));
   color: var(--ink);
 }
+
+/* What the handset is hearing, so the caller can see it landing. */
+.phone__heard {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.phone__line {
+  margin: 0;
+  font-family: var(--font-stamp), system-ui, sans-serif;
+  font-weight: 800;
+  font-stretch: 82%;
+  font-size: clamp(1.2rem, 5.5vw, 2rem);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: var(--steel-ink);
+}
+
+/* Not settled yet — same carbon-to-ink logic the console's record uses. */
+.phone__line--partial {
+  color: var(--steel-dim);
+}
+
+.phone__failure {
+  margin: 0;
+  padding: 0.7rem 0.9rem;
+  border: 1.5px solid var(--red-lit);
+  color: var(--red-lit);
+}
