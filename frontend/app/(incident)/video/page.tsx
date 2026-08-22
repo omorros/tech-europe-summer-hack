@@ -41,7 +41,8 @@ function WalkPlaylist({
         autoPlay
         muted
         playsInline
-        onEnded={() => setIndex((value) => Math.min(value + 1, playable.length - 1))}
+        loop={playable.length === 1}
+        onEnded={() => setIndex((value) => (value + 1) % playable.length)}
         onError={() => setIndex((value) => value + 1)}
         style={{ width: "100%", height: "100%", objectFit: "cover" }}
       />
@@ -104,6 +105,7 @@ export default function VideoPage() {
             src={videoSrc}
             autoPlay
             muted
+            loop
             playsInline
             onError={() => setVideoFailed(true)}
             style={{ width: "100%", height: "100%", objectFit: "cover" }}

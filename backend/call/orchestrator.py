@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import uuid
 from collections import deque
 from pathlib import Path
@@ -60,7 +61,25 @@ def resolve_address(address: str) -> str:
     ]
     if len(matches) == 1:
         return _address_from_cache(matches[0]) or raw
+
+    # A spoken address carries the postcode but not the town, and the cache
+    # folders carry both: "14-deerdale-road-se24-0aw" is neither a prefix nor
+    # an extension of "14-deerdale-road-london-se24-0aw", so the check above
+    # misses and the whole run goes live - the agent launches Playwright for a
+    # property we already have on disk. Match on the house number and street
+    # instead, which is what actually identifies the building.
+    key = _street_key(slug)
+    if key:
+        near = [folder for folder in folders if _street_key(folder.name) == key]
+        if len(near) == 1:
+            return _address_from_cache(near[0]) or raw
     return raw
+
+
+def _street_key(slug: str) -> str:
+    """Number and street, before any town or postcode. "22-kellett-road"."""
+    parts = [p for p in slug.split("-") if p]
+    return "-".join(parts[:3]) if len(parts) >= 3 else ""
 
 
 def _address_from_cache(folder: Path) -> str | None:
@@ -441,6 +460,14 @@ class Orchestrator:
                 # make_briefing already emitted; re-emit with the honesty block
                 # attached so the console can say "1 of 4 rooms photographed".
                 briefing = {**briefing, "coverage": coverage}
+            # Keep the clips. The caller hanging up writes a fresh crew card,
+            # and a rebuild that dropped `legs` took the walkthrough off the
+            # video page seconds after it had arrived - the render succeeded
+            # and the screen went black anyway.
+            legs = (self.briefing or {}).get("legs")
+            if legs:
+                briefing = {**briefing, "legs": legs}
+            if coverage or legs:
                 bus.emit("briefing.ready", briefing)
             self.briefing = briefing
             bus.emit("status", {"stage": "briefing", "state": "done", "message": "Crew card ready"})
@@ -478,13 +505,21 @@ class Orchestrator:
         fire_room = self._fire_room()
 
         # A render costs real money and takes minutes, so a walk we have
-        # already paid for at this address, for this fire, is reused as-is.
+        # already paid for at this address is reused as-is.
+        #
+        # The fire room is a preference, not a condition. The walkthrough can
+        # be triggered before the caller has said where the fire is, and on a
+        # projected screen a cached walk of the right building beats two
+        # minutes of black waiting for fal. The status says which case it is.
         cached = load_cached(address, "walkthrough")
-        if isinstance(cached, dict) and cached.get("fire_room") == fire_room \
-                and cached.get("legs"):
+        if isinstance(cached, dict) and cached.get("legs"):
+            same_fire = cached.get("fire_room") == fire_room
             self._publish_walk(generation, cached["legs"])
-            bus.emit("status", {"stage": "briefing", "state": "done",
-                                "message": "Cached walkthrough"})
+            bus.emit("status", {
+                "stage": "briefing", "state": "done",
+                "message": "Cached walkthrough" if same_fire
+                else f"Cached walkthrough (rendered for the {cached.get('fire_room') or 'route'})",
+            })
             return
         if not walkthrough.available():
             return
@@ -496,6 +531,10 @@ class Orchestrator:
             self.route, self.graph, self.artifacts,
             approach=self.approach, hazards=hazards, fire_room=fire_room,
             continuous=True,
+            # Kling tops out at 10s of output, so ask for all of it: the walk
+            # is one continuous take and the video page loops it, so the
+            # longest clip the model will make is the one we want.
+            seconds_per_leg=int(os.environ.get("LANTERN_WALK_SECONDS", "10")),
             building_description=f"{approach.get('building_type', 'house')}, "
                                  f"{approach.get('storeys', '')} storeys".strip(", "),
         )

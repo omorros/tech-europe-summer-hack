@@ -4,39 +4,41 @@
   "streetview": [
     {
       "heading": 278.9,
-      "url": "/static/approach/14-deerdale-road-london-se24-0aw-1787403557-sv-0.jpg"
+      "url": "/static/approach/14-deerdale-road-london-se24-0aw-1787417977-sv-0.jpg"
     },
     {
       "heading": 313.9,
-      "url": "/static/approach/14-deerdale-road-london-se24-0aw-1787403557-sv-1.jpg"
+      "url": "/static/approach/14-deerdale-road-london-se24-0aw-1787417977-sv-1.jpg"
     },
     {
       "heading": 348.9,
-      "url": "/static/approach/14-deerdale-road-london-se24-0aw-1787403557-sv-2.jpg"
+      "url": "/static/approach/14-deerdale-road-london-se24-0aw-1787417977-sv-2.jpg"
     }
   ],
-  "satellite_url": "/static/approach/14-deerdale-road-london-se24-0aw-1787403557-satellite.jpg",
+  "satellite_url": "/static/approach/14-deerdale-road-london-se24-0aw-1787417977-satellite.jpg",
   "coverage": true,
-  "building_type": "Terraced house (mid-terrace)",
+  "building_type": "Terraced house",
   "storeys": 2,
   "front_door": {
-    "side": "left (as seen from the road, to the left of that property\u2019s bay window, beneath the shared porch)",
-    "description": "Set behind a low brick front wall and small gate; under a small timber canopy/porch with decorative slats. Solid panel door (one shown red in imagery) with letterbox; short path from pavement with a small threshold step."
+    "side": "uncertain (two adjacent doors under a shared porch; exact unit number not visible)",
+    "description": "Either a dark grey door (left unit) or a red door (right unit) beneath a black-and-white timber canopy, set slightly back behind low brick/picket front walls."
   },
   "access_notes": [
-    "Low brick front wall with small gate and short path to door",
-    "Narrow frontage typical of a terrace",
-    "Street furniture close to frontage: lighting/sign post and nearby telegraph/utility pole with overhead cables",
-    "On-street parking both sides may constrict carriageway width for appliances",
-    "No hydrant marker or standpipe cover clearly visible in the street views provided"
+    "Shallow set-back/front garden behind low brick wall or short timber picket fence.",
+    "Short path from pavement; appears to be a small step up from pavement level.",
+    "Shared timber canopy/porch over two neighboring doors.",
+    "Narrow frontage on a residential street.",
+    "Parking-control signpost on pavement near frontage.",
+    "No obvious hydrant marker or standpipe sign visible."
   ],
   "obstacles": [
-    "Wheelie bins/refuse bags in front garden areas by gates",
-    "Low brick walls and picket-style fencing",
-    "Parked vehicles along kerb",
-    "Lamp post/sign post and a telegraph pole on the pavement"
+    "Low brick walls and short picket fence at frontage.",
+    "Bins/refuse sacks near front walls.",
+    "Street signpost on pavement.",
+    "Parked cars along the kerb.",
+    "Telegraph pole further along the pavement."
   ],
-  "rear_access": true,
-  "rear_access_note": "Long rear garden; rear boundary appears to back onto vegetated open land. No dedicated rear alley visible from satellite view.",
-  "parking": "Kerbside on Deerdale Road immediately outside or opposite the property; residential street with parallel parking both sides."
+  "rear_access": false,
+  "rear_access_note": "Mid-terrace with long enclosed rear gardens backing onto other gardens; no rear alley or side passage visible on satellite view.",
+  "parking": "On-street parallel parking on Deerdale Road immediately outside; appliance could take kerbside position subject to available space on this single-carriageway residential street."
 }
