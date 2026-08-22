@@ -9,6 +9,8 @@ eval-comparison.json
 node_modules/
 .next/
 out/
+frontend/public/cache/
+frontend/public/static/
 next-env.d.ts
 *.tsbuildinfo
 .fal-spend.json

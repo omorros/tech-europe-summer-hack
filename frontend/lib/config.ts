@@ -35,13 +35,33 @@ export function backendUrl(): string {
   return resolved;
 }
 
+function isLocalHost(host: string): boolean {
+  return (
+    host === "localhost" ||
+    host === "127.0.0.1" ||
+    host.endsWith(".trycloudflare.com")
+  );
+}
+
 function resolveBackend(): string {
   if (typeof window !== "undefined") {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (stored) return trimSlash(stored);
     const host = window.location.hostname;
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      try {
+        const storedHost = new URL(stored).hostname;
+        // A leftover laptop tunnel must not steal the deployed console.
+        if (!isLocalHost(host) && isLocalHost(storedHost)) {
+          window.localStorage.removeItem(STORAGE_KEY);
+        } else {
+          return trimSlash(stored);
+        }
+      } catch {
+        window.localStorage.removeItem(STORAGE_KEY);
+      }
+    }
     const baked = process.env.NEXT_PUBLIC_BACKEND_URL ?? "";
-    if (host === "localhost" || host === "127.0.0.1") {
+    if (isLocalHost(host)) {
       return trimSlash(baked || "http://localhost:8000");
     }
     // A localhost bake from `next build` on a laptop must not win on Cloudflare.

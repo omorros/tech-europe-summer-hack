@@ -48,10 +48,7 @@ export function useAttachments(state: IncidentState): Attachment[] {
   // What was extracted, plus whatever is printing right now. The second half
   // matters: without it the record is a list of facts that appear after the
   // sentence is over, and the carbon-to-ink strike can never be seen.
-  const extracted = useMemo(
-    () => state.lines.filter((line) => line.entities.length > 0 || !line.isFinal),
-    [state.lines],
-  );
+  const extracted = useMemo(() => state.lines, [state.lines]);
 
   return useMemo(
     () => [
@@ -59,7 +56,7 @@ export function useAttachments(state: IncidentState): Attachment[] {
         id: "record",
         label: "Record",
         ready: extracted.length > 0,
-        waitingOn: "Nothing has been extracted from the call yet.",
+        waitingOn: "Waiting for the caller.",
         render: () => <LogRoll lines={extracted} />,
       },
       {

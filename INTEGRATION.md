@@ -88,35 +88,25 @@ npm run dev            # http://localhost:3000
 
 ### On Cloudflare
 
-The UI deploys as a static export behind a Worker that proxies the API paths
-to the backend. The backend still runs on the laptop, so it needs a public
-HTTPS origin — an HTTPS page cannot open a `ws://` socket, and the Worker
-cannot reach your localhost.
+The UI Worker **is** the backend for the five warmed addresses. `/incident`,
+`/ws/console`, `/ws/phone` and `/static/` are handled in a Durable Object on
+the same `sizeup-ui` Worker as the Next.js export. Open
+https://sizeup-ui.bill-nguyentonhoang.workers.dev, type `14 Deerdale Road`,
+and the console runs without FastAPI.
+
+FastAPI is still the laptop process for a **live** H-agent scrape of an
+unknown address. Point the Worker at it only then:
 
 ```bash
-# terminal 1 — the backend
 cd backend && uv run uvicorn server:app --host 0.0.0.0 --port 8000
-
-# terminal 2 — a public HTTPS origin for it
 cloudflared tunnel --url http://localhost:8000
-#   prints https://<something>.trycloudflare.com
-
-# terminal 3 — build and ship the UI
-cd frontend
-npm run build
-npx wrangler deploy --var BACKEND_ORIGIN:https://<something>.trycloudflare.com
+cd frontend && npx wrangler deploy --var BACKEND_ORIGIN:https://….trycloudflare.com
 ```
 
-`wrangler deploy` uploads whatever is in `frontend/out`, so the `npm run build`
-is not optional. `npm run deploy` chains the two, but reads `BACKEND_ORIGIN`
-from `frontend/wrangler.toml` — and the tunnel URL changes every time
-`cloudflared` restarts, so passing `--var` is usually less annoying than
-editing the file.
-
-**No rebuild needed to repoint it.** Open the deployed console with
-`?backend=https://<tunnel>.trycloudflare.com` and it is remembered in
-`localStorage`. That is the fastest way to recover if the tunnel dies
-mid-demo.
+Empty `BACKEND_ORIGIN` (the default) keeps the Durable Object in charge.
+`npm run deploy` from `frontend/` builds the export (and copies
+`backend/cache` + listing photos into it) then ships the Worker. CI does
+the same on every push to `main` that touches `frontend/` or the cache.
 
 ### Driving the app
 

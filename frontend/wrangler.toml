@@ -8,9 +8,17 @@ binding = "ASSETS"
 # next export writes 404.html. SPA handling would answer a mistyped URL with
 # the address-entry page and a 200, which reads as a working screen.
 not_found_handling = "404-page"
-run_worker_first = ["/ws/*", "/incident", "/incident/*", "/health", "/static/*", "/radio"]
+run_worker_first = ["/ws/*", "/incident", "/incident/*", "/health", "/static/*", "/cache/*", "/radio"]
+
+[durable_objects]
+bindings = [{ name = "INCIDENT", class_name = "IncidentHub" }]
+
+[[migrations]]
+tag = "v1-incident-hub"
+new_sqlite_classes = ["IncidentHub"]
 
 [vars]
-# Public HTTPS origin of the FastAPI process. A trycloudflare.com tunnel URL.
-# Empty = the UI still serves; API calls 503 until you set this or pass ?backend=
+# This Worker is the backend. FastAPI is not in the path.
+PUBLIC_ORIGIN = "https://sizeup-ui.bill-nguyentonhoang.workers.dev"
+WALKTHROUGH_URL = "https://sizeup-walkthrough.bill-nguyentonhoang.workers.dev"
 BACKEND_ORIGIN = ""

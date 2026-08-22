@@ -6,9 +6,17 @@ name: frontend
 on:
   push:
     branches: [main]
-    paths: ['frontend/**', '.github/workflows/frontend.yml']
+    paths:
+      - 'frontend/**'
+      - 'backend/cache/**'
+      - 'backend/static/artifacts/**'
+      - '.github/workflows/frontend.yml'
   pull_request:
-    paths: ['frontend/**', '.github/workflows/frontend.yml']
+    paths:
+      - 'frontend/**'
+      - 'backend/cache/**'
+      - 'backend/static/artifacts/**'
+      - '.github/workflows/frontend.yml'
   workflow_dispatch:
 
 defaults:

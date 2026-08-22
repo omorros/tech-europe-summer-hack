@@ -1,52 +1,62 @@
 /**
- * Serves the exported Next.js UI and proxies API/WebSocket/static traffic
- * to the FastAPI process.
+ * One Worker: Next.js UI + the incident bus.
  *
- * BACKEND_ORIGIN must be a public HTTPS URL (cloudflared tunnel) — the
- * Worker cannot reach localhost on your laptop.
+ * FastAPI is the laptop process that still runs the live H agent. The
+ * browser never talks to Python directly — it talks HTTP and a WebSocket.
+ * Those live here, in a Durable Object, so the deployed console does not
+ * wait on a tunnel.
+ *
+ * Set BACKEND_ORIGIN to send API traffic to FastAPI instead (live scrape).
  */
 
-interface Env {
-  ASSETS: { fetch: (request: Request) => Promise<Response> };
-  BACKEND_ORIGIN: string;
+import { IncidentHub, type Env } from "./lane/incident";
+
+export { IncidentHub };
+
+const API = ["/ws/", "/incident", "/health", "/radio"];
+
+function isApi(pathname: string): boolean {
+  return API.some((prefix) => pathname === prefix || pathname.startsWith(prefix));
 }
 
-const PROXY_PREFIXES = ["/ws/", "/incident", "/health", "/static/", "/radio"];
+function isStatic(pathname: string): boolean {
+  return pathname === "/static" || pathname.startsWith("/static/") || pathname.startsWith("/cache/");
+}
 
-const UNSET_MESSAGE =
-  "BACKEND_ORIGIN is unset. Run a cloudflared tunnel to the FastAPI process " +
-  "and set that https URL as the Worker var (or open this page with " +
-  "?backend=https://….trycloudflare.com).";
-
-function shouldProxy(pathname: string): boolean {
-  return PROXY_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(prefix));
+async function proxy(request: Request, origin: string): Promise<Response> {
+  const url = new URL(request.url);
+  const target = origin.replace(/\/$/, "") + url.pathname + url.search;
+  if (request.headers.get("Upgrade")?.toLowerCase() === "websocket") {
+    return fetch(target, request);
+  }
+  return fetch(target, {
+    method: request.method,
+    headers: request.headers,
+    body: request.body,
+    redirect: "manual",
+    // @ts-expect-error duplex is required to stream a request body on Workers
+    duplex: "half",
+  });
 }
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
-    if (!shouldProxy(url.pathname)) return env.ASSETS.fetch(request);
-
     const origin = (env.BACKEND_ORIGIN || "").replace(/\/$/, "");
-    if (!origin) {
-      return Response.json({ ok: false, error: UNSET_MESSAGE }, { status: 503 });
-    }
-    const target = origin + url.pathname + url.search;
 
-    // A WebSocket handshake has to reach the origin as it arrived: passing the
-    // original Request keeps the Upgrade headers, and the 101 comes back with
-    // its `webSocket` attached. Rebuilding the request loses both.
-    if (request.headers.get("Upgrade")?.toLowerCase() === "websocket") {
-      return fetch(target, request);
+    if (isStatic(url.pathname)) {
+      const local = await env.ASSETS.fetch(request);
+      if (local.ok || local.status !== 404) return local;
+      if (origin) return proxy(request, origin);
+      return local;
     }
 
-    return fetch(target, {
-      method: request.method,
-      headers: request.headers,
-      body: request.body,
-      redirect: "manual",
-      // @ts-expect-error duplex is required to stream a request body on Workers
-      duplex: "half",
-    });
+    if (isApi(url.pathname)) {
+      if (origin) return proxy(request, origin);
+      const id = env.INCIDENT.idFromName("live");
+      return env.INCIDENT.get(id).fetch(request);
+    }
+
+    return env.ASSETS.fetch(request);
   },
 };

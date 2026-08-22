@@ -4,14 +4,17 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { emitRemote, now } from "@/lib/bus";
 import { consumeBackendParam } from "@/lib/config";
 import { connectPhone, type PhoneSocket } from "@/lib/phone";
-import { DEMO_ADDRESS } from "@/lib/timeline";
 import { SyntheticStamp } from "@/components/plates";
 
 type CallState = "idle" | "dialling" | "connected" | "ended";
 
+/** One of the five warmed listings on this Worker — so approach/plan/rooms
+ *  and the cached walkthrough actually land on the console. */
+const CALL_ADDRESS = "14 Deerdale Road, London SE24 0AW";
+
 const SCRIPT = [
   "Fire! There's a fire!",
-  `It's ${DEMO_ADDRESS.replace(",", " —")}`,
+  `It's ${CALL_ADDRESS.replace(",", " —")}`,
   "The kitchen's on fire, there's smoke everywhere down here",
   "My mum's upstairs, she's in the back bedroom, she can't get down",
   "We can't get out the back, the bins are against the door",
@@ -71,7 +74,7 @@ export default function PhonePage() {
         }
         if (socket) {
           phone.current = socket;
-          socket.send({ type: "call.start", address: DEMO_ADDRESS });
+          socket.send({ type: "call.start" });
           socket.send({ type: "transcript", seq: 0, text: SCRIPT[0], is_final: true });
           setLive(true);
         } else {

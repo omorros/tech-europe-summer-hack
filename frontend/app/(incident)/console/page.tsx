@@ -22,13 +22,15 @@ export default function ConsolePage() {
   const address = state.entities.find((entity) => entity.type === "ADDRESS")?.value;
   const briefing = state.briefing;
 
-  // When the call is done and the brief lands, the video takes over — once per
-  // run. Coming back here deliberately must not bounce straight out again.
+  // Stay on the console while the call is live so Approach / Plan / Rooms can
+  // land, and so the walkthrough can render in the background. Hand over once
+  // the caller hangs up and the crew card exists.
   useEffect(() => {
     if (!briefing || handedOver.current) return;
+    if (state.callState !== "ended") return;
     handedOver.current = true;
     router.push("/video");
-  }, [briefing, router, handedOver]);
+  }, [briefing, router, handedOver, state.callState]);
 
   // One hand drives this on stage: number keys reach every attachment.
   useEffect(() => {
