@@ -1,4 +1,4 @@
-"""SizeUp FastAPI process: static files, incident HTTP, WebSocket fan-out.
+"""Lantern FastAPI process: static files, incident HTTP, WebSocket fan-out.
 
     cd backend
     uv run uvicorn server:app --host 0.0.0.0 --port 8000
@@ -34,7 +34,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="SizeUp", lifespan=lifespan)
+app = FastAPI(title="Lantern", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -57,7 +57,7 @@ class RadioIn(BaseModel):
 async def health() -> dict:
     return {
         "ok": True,
-        "service": "sizeup-backend",
+        "service": "lantern-backend",
         "boot": bus.BOOT,
         "consoles": bus.consoles(),
         "call_id": orchestrator.call_id,

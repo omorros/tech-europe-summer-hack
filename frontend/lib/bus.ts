@@ -12,7 +12,7 @@ import { consumeBackendParam, wsUrl } from "./config";
  * number when `boot` changes, because a restarted backend counts from one.
  */
 
-const CHANNEL = "sizeup";
+const CHANNEL = "lantern";
 const RECONNECT_CEILING_MS = 10_000;
 
 type Handler = (event: BusEvent) => void;

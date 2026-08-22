@@ -113,7 +113,7 @@ export default function PhonePage() {
   return (
     <main className="phone">
       <div className="stamp stamp-bar stamp-bar--steel">
-        <span style={{ flex: 1 }}>SizeUp · Caller</span>
+        <span style={{ flex: 1 }}>Lantern · Caller</span>
         <span>{live ? "live" : "local"}</span>
         <SyntheticStamp paper={false} />
       </div>

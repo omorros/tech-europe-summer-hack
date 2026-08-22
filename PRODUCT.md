@@ -22,7 +22,7 @@ The judging panel is the audience that actually matters on 22 Aug 2026: five min
 
 ## Product Purpose
 
-SizeUp turns a live 999 call into a building briefing before the crew arrives. It exists because firefighters enter burning buildings blind — no floor plan, no idea which room the victim is in — while the information already sits in two disconnected places: the call itself, and historical UK property listings that keep interior photos and floor plans for years. Success is the demo statement: by the time the caller hangs up, the crew has already walked through the house.
+Lantern turns a live 999 call into a building briefing before the crew arrives. It exists because firefighters enter burning buildings blind — no floor plan, no idea which room the victim is in — while the information already sits in two disconnected places: the call itself, and historical UK property listings that keep interior photos and floor plans for years. Success is the demo statement: by the time the caller hangs up, the crew has already walked through the house.
 
 ## Positioning
 
@@ -50,13 +50,13 @@ The three contract deltas from the merge are rendered: the route's kerb waypoint
 
 ## Brand Commitments
 
-Name: SizeUp. Line: "Know the building before you go through the door." The name is the fire-service term for the rapid assessment an incident commander makes on arrival, and the product should carry that vocabulary rather than consumer-app language.
+Name: Lantern — what you carry into the dark. It does not claim to see through walls; it lights what is in front of you, which is the only honest claim for a briefing built from a live call and a listing that may be years stale. Line: "Know the building before you go through the door." The product keeps fire-service vocabulary — size-up, appliance, kerb, stand, casualty — rather than consumer-app language.
 
 The one binding visual constraint the team has stated: it should look like official emergency-service equipment — readable in full daylight and at night, navigable at a glance, no decoration competing with the incident picture.
 
 ## Evidence on Hand
 
-Four PRDs in the repo: `sizeup-final-prd.md` (master, locked) plus one per lane. No code, no design tokens, no brand assets, no logo yet. No real 999 audio, no real property data, no user research — the golden property and its cached fal reconstruction are demo assets to be produced on the day, and nothing about crew adoption, accuracy or coverage may be presented as validated. The honest-answers bank in the master PRD section 11 is the agreed line on every one of those limits.
+Four PRDs in the repo: `lantern-final-prd.md` (master, locked) plus one per lane. No code, no design tokens, no brand assets, no logo yet. No real 999 audio, no real property data, no user research — the golden property and its cached fal reconstruction are demo assets to be produced on the day, and nothing about crew adoption, accuracy or coverage may be presented as validated. The honest-answers bank in the master PRD section 11 is the agreed line on every one of those limits.
 
 ## Product Principles
 

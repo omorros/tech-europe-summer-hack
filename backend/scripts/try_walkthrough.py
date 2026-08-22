@@ -190,7 +190,7 @@ def write_page(address: str, briefing: dict, state: dict, coverage: dict) -> Non
     )
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(f"""<!doctype html><meta charset=utf-8>
-<title>SizeUp — {address}</title>
+<title>Lantern — {address}</title>
 <style>
  body{{margin:0;background:#0b0e13;color:#e7ecf3;font:15px/1.5 ui-sans-serif,system-ui}}
  .wrap{{display:grid;grid-template-columns:1fr 380px;gap:18px;padding:18px;height:100vh;box-sizing:border-box}}

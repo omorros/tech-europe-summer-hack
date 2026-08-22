@@ -1,4 +1,4 @@
-# SizeUp golden properties (demo list)
+# Lantern golden properties (demo list)
 
 Five sold listings, every one verified through the full live pipeline on the
 day: live Holo agent found each listing on Rightmove sold prices, floor plan

@@ -1,8 +1,8 @@
-# SizeUp, Oriol's PRD: H agent + building intelligence
+# Lantern, Oriol's PRD: H agent + building intelligence
 
 **Lane:** everything from an address to a navigable model of the house. The agent, the room graph, the 3D reconstruction.
 **Event:** {Tech: Europe} x VEED Hackathon, The Summer Lock-In, London, Sat Aug 22. Submit 19:00, demos 20:00.
-**Read with:** `sizeup-final-prd.md` (master). Sections 0 and 3 below are byte-identical in all three lane PRDs. If you change section 3, tell Mykyta and Bill in the same minute.
+**Read with:** `lantern-final-prd.md` (master). Sections 0 and 3 below are byte-identical in all three lane PRDs. If you change section 3, tell Mykyta and Bill in the same minute.
 
 ---
 
@@ -10,11 +10,11 @@
 
 **One-liner:** Know the building before you go through the door.
 
-"Size-up" is the fire-service term for the rapid assessment an incident commander makes on arrival. That is what this product does.
+A lantern is what you carry into the dark. It does not see through walls; it lights what is in front of you — which is the honest claim for a briefing assembled from a live call and a property listing that may be years old. The fire-service term for the rapid assessment an incident commander makes on arrival is a size-up. Lantern delivers one before the crew arrives.
 
 **Problem:** firefighters enter burning buildings blind. No floor plan, no idea where the fire started or which room the victim is in. They orient by feeling through black smoke, and every second spent working out the layout is a second the trapped person does not have.
 
-**Insight:** the information already exists in two disconnected places. (1) The 999 call, full of location detail, stuck on a phone line. (2) The inside of most UK homes, photographed in historical property listings, since Rightmove/Zoopla keep sold-price photos and floor plans for years. SizeUp connects them live, during the call.
+**Insight:** the information already exists in two disconnected places. (1) The 999 call, full of location detail, stuck on a phone line. (2) The inside of most UK homes, photographed in historical property listings, since Rightmove/Zoopla keep sold-price photos and floor plans for years. Lantern connects them live, during the call.
 
 **End-to-end flow:**
 
