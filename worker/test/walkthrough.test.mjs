@@ -18,7 +18,7 @@ import {
   DEFAULT_MODEL,
   estimateUsd,
 } from "../src/models.ts";
-import { videoUrl } from "../src/fal.ts";
+import { pollBase, videoUrl } from "../src/fal.ts";
 
 const REQUEST = {
   address: "23 Larkfield Road, London SE15 4ND",
@@ -181,4 +181,13 @@ test("Veo audio is always off — it silently doubles the per-second price", () 
     });
     assert.notEqual(built.generate_audio, true, id);
   }
+});
+
+test("polling paths drop the model sub-path (found in production as a 405)", () => {
+  // Submitting to fal-ai/kling-video/o1/image-to-video returns a status_url of
+  // …/fal-ai/kling-video/requests/{id}/status — only two segments survive.
+  assert.equal(pollBase("fal-ai/kling-video/o1/image-to-video"), "fal-ai/kling-video");
+  assert.equal(pollBase("fal-ai/veo3.1/first-last-frame-to-video"), "fal-ai/veo3.1");
+  assert.equal(pollBase("veed/fabric-1.0"), "veed/fabric-1.0");
+  assert.equal(pollBase("fal-ai/kokoro/american-english"), "fal-ai/kokoro");
 });

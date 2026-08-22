@@ -121,8 +121,12 @@ class RegexExtractor:
         r"(upstairs|downstairs|inside)", re.I)
     _fire = [
         re.compile(rf"fire\s+(?:started|began|broke\s+out)\s+(?:in|at|by|near)\s+(?:the\s+)?({_ROOM}|{_APPLIANCE})", re.I),
-        re.compile(rf"fire\s+in\s+(?:the\s+)?({_ROOM})", re.I),
-        re.compile(rf"(?:the\s+)?({_ROOM})\s*(?:is|'s|was)?\s+on\s+fire", re.I),
+        # "it started in the kitchen" / "started by the cooker" — callers rarely
+        # repeat the word "fire" once they have said there is one.
+        re.compile(rf"(?:it|that|this)?\s*(?:started|began|broke\s+out)\s+(?:in|at|by|near|from)\s+(?:the\s+)?({_ROOM}|{_APPLIANCE})", re.I),
+        re.compile(rf"fire\s+(?:is\s+)?(?:in|at)\s+(?:the\s+)?({_ROOM}|{_APPLIANCE})", re.I),
+        re.compile(rf"(?:the\s+)?({_ROOM}|{_APPLIANCE})\s*(?:is|'s|was|are)?\s+(?:on\s+fire|alight|ablaze|burning)", re.I),
+        re.compile(rf"flames?\s+(?:in|from|coming\s+from)\s+(?:the\s+)?({_ROOM}|{_APPLIANCE})", re.I),
     ]
     _hazard = re.compile(
         rf"({_HAZARD})(?:\s+(?:is|are)?\s*(?:in|on|by|near|filling)\s+(?:the\s+)?({_ROOM}|{_APPLIANCE}))?", re.I)
