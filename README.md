@@ -11,16 +11,138 @@
 ![Pioneer](https://img.shields.io/badge/Pioneer-GLiNER2-F59E0B)
 ![Hackathon](https://img.shields.io/badge/%7BTech%3A_Europe%7D_x_VEED-London_2026-E11D48)
 
-Firefighters enter burning buildings blind. No floor plan, no idea where the
-fire started or which room the victim is in. Meanwhile the outside of every UK
-building is on Street View, and the inside of most UK homes is photographed in
-an old property listing. Nobody has ever joined the two during the 999 call.
+When firefighters arrive at a house fire, they know nothing. No floor plan.
+No idea where the fire started or which room someone is trapped in. They find
+out by crawling through black smoke, one second at a time.
 
-Lantern does. While the caller is still on the line, the dispatch console fills
-with the building: the front door they will go through, the floor plan, the
-room the victim is in, a 3D reconstruction of it, and the safest route from
-the kerb. "Size-up" is the fire service term for the rapid assessment an
-incident commander makes on arrival. We moved it to before the truck leaves.
+Last year **271 people died in fires in England**. Nearly eight in ten died
+at home. Crews take about **eight minutes** to arrive — eight minutes of
+driving, then zero seconds of knowing. We fixed the second part.
+
+## Why we built this
+
+The inside of that house is already on the internet. Photos, floor plan —
+sitting in the old property listing from the day it was sold. And the 999
+call already says where the fire is and where the person is. Nobody has
+ever connected the two.
+
+Lantern does. While the caller is still on the line, the dispatch console
+fills with the building: the front door they will go through, the floor
+plan, the room the victim was reported in, a 3D reconstruction of it, and
+a route from the kerb. "Size-up" is the fire service term for the rapid
+assessment an incident commander makes on arrival. We moved it to before
+the truck leaves.
+
+We are not selling AI-generated floor plans. We are selling
+**information → time**.
+
+```
+TODAY                              LANTERN
+
+999 call                           999 call
+"Dad is upstairs,                  "Dad is upstairs,
+ back bedroom..."                   back bedroom..."
+        │                                   │
+   speech only                    Pioneer extracts
+        │                          victim = rear
+        ▼                          upstairs bedroom
+firefighters arrive                         │
+        │                          H finds the listing
+enter an unfamiliar                         │
+building                            spatial briefing:
+        │                           victim · fire ·
+search room by room                 route · hazards
+        │                                   │
+   find the victim                  targeted search
+```
+
+Every second of orientation we save is a second closer to the person
+inside.
+
+### What the evidence actually says
+
+This is not "AI helps firefighters navigate." The premise is narrower and
+stronger: **spatial intelligence can cut interior search time substantially,
+and fire-rescue survival is time-sensitive.**
+
+In a 2025 *Fire* experiment, crews in an unfamiliar, smoke-obscured
+environment were given the trapped person's location on a floor plan — or
+not. Average time to the victim fell from **4m 18s to 2m 50s**: **87
+seconds, 34% faster**. Five of the 41 teams searching without a location
+never found the victim and abandoned the search.
+
+```
+WITHOUT LOCATION INTELLIGENCE     4m 18s
+█████████████████████████████████
+
+WITH VICTIM LOCATION              2m 50s
+██████████████████████
+
+                         −87 seconds   −33.7%
+                         Kuo & Lin, Fire, 2025
+```
+
+That is not a few seconds. Searching a single 12 m² bedroom already takes
+on the order of **four minutes** in experimental interior-search
+conditions. Without a location, crews pay that cost for every wrong room.
+With one, they skip the rooms that do not matter.
+
+Those tens of seconds sit inside an environment that deteriorates in
+minutes. Full-scale experiments on modern furnished rooms have measured
+flashover in roughly **3–5 minutes**, and untenable living-room conditions
+in a little over three. This is not a setting where 90 seconds is a
+rounding error.
+
+Shorter fire-service **response** times are also associated with more
+rescues. That evidence is about arrival, not search after arrival, so we
+do not claim "Lantern saves X% of lives per minute." The defensible
+statement is the one the papers support: knowing where the victim was
+reported can cut search time by about a third, and the clock that search
+is racing is measured in minutes.
+
+Route and layout information help in the same direction. First responders
+given a head-mounted floor-plan display navigated **38% faster**, travelled
+**44% less distance**, and made **60% fewer errors**. Firefighter
+wayfinding studies found that **explicit route information** beat being
+handed a complicated plan and asked to invent a path. So the briefing is
+not a raw floor plan with two pins. It is a route:
+
+```
+VICTIM     first floor → rear bedroom
+ENTRY      front door
+ROUTE      entrance → hallway → stairs → rear-right bedroom
+HAZARD     kitchen fire
+AVOID      smoke reported on the main staircase
+```
+
+### Decision support, not gospel
+
+A listing may be years stale. Reconstructed geometry can be wrong.
+Lantern is a pre-arrival briefing, not an autonomous navigation system.
+Every fact on the brief carries a source, and the interface is honest
+about the gap.
+
+| Weight | What it is | Example |
+|---|---|---|
+| **Confirmed** | Spoken on the call | Victim reported upstairs, rear bedroom. Kitchen fire. Occupant cannot walk. |
+| **Source-derived** | Read from the listing or the street | Two bedrooms upstairs. Kitchen appears ground-floor rear. Front door on the left. |
+| **Inferred** | Modelled, labelled as such | Approximate room geometry. Likely connecting hallway. |
+
+The crew treats it as prior knowledge, not ground truth. By the time the
+caller hangs up, they have already walked through the house — as a
+briefing, not as a promise.
+
+The UK figures above are from official statistics for the year ending
+March 2025: 271 fire-related fatalities, of which 208 (77%) were in
+dwellings; average first-appliance response to dwelling fires with
+victims or rescues was 7 minutes 58 seconds ([MHCLG / GOV.UK](https://www.gov.uk/government/statistics/detailed-analysis-of-fires-england-april-2024-to-march-2025/detailed-analysis-of-fires-and-response-times-to-fires-attended-by-fire-and-rescue-services-england-april-2024-to-march-2025),
+FIRE0502, FIRE1002). Search-time result: Kuo & Lin, *Fire* 8(3):114,
+2025. Bedroom search order-of-magnitude: *Fire Safety Journal*, 2021.
+Flashover / untenability: FSRI modern-furnishings experiments; NIST
+living-room tests. Response time and survival: Jaldell, *Fire
+Technology*; Runefors et al. (Swedish residential-fire data). Navigation
+assistance and route/survey wayfinding: first-responder HMD study;
+*Safety Science* firefighter experiments, 2021 and 2023.
 
 ## How it works
 
