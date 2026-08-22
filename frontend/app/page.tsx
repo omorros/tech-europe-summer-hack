@@ -27,7 +27,7 @@ export default function AddressPage() {
   return (
     <main className="entry">
       <div className="stamp stamp-bar stamp-bar--steel">
-        <span style={{ flex: 1 }}>SizeUp · Dispatch</span>
+        <span style={{ flex: 1 }}>Lantern · Dispatch</span>
         <SyntheticStamp paper={false} />
       </div>
 

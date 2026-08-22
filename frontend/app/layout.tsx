@@ -17,7 +17,7 @@ const record = Courier_Prime({
 });
 
 export const metadata: Metadata = {
-  title: "SizeUp — know the building before you go through the door",
+  title: "Lantern — know the building before you go through the door",
   description:
     "Turns a live 999 call into a building briefing before the crew arrives.",
 };
