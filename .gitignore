@@ -8,9 +8,16 @@ seed-labelled.json
 eval-comparison.json
 node_modules/
 .next/
+out/
+next-env.d.ts
 .fal-spend.json
-.pioneer-state.json
 .wrangler/
 worker/.dev.vars
 # generated briefing captions (backend/.gitignore already covers agent/approach)
 backend/static/briefing/
+# impeccable working artifacts
+.impeccable/review/
+.impeccable/live/
+.impeccable/questions/
+.DS_Store
+Thumbs.db

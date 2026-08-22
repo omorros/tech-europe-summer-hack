@@ -1,0 +1,128 @@
+{
+  "title": "SizeUp dispatch console — choose the visual world",
+  "question": "The roll assigned The Incident Log. Keep it, take an alternate, or re-roll.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "The Incident Log",
+      "kicker": "THE ROLL",
+      "lineage": "fire control room teleprinter roll and printed run sheet",
+      "thesis": "The console is not a dashboard watching an incident — it IS the incident record, writing itself in real time. Every bus event prints one timestamped line into a continuous log, and the panels are attachments pinned off it. Refuses the glowing mission-control grid of equal cards.",
+      "palette": ["#0d0f10", "#f7f5f0", "#c8102e", "#ffd400"],
+      "materials": ["printed roll on dark steel", "sprocket margin", "carbon ghosting", "red overprint strike"],
+      "viewport": "A true-white printed log column runs floor to ceiling on the left over a near-black steel ground: sprocket margin, sequence numbers, timestamps, one monospace size. Transcript fragments print as they are spoken — partials in grey carbon, striking to solid black the moment they are final. Entities are not filed to a sidebar; they are stamped into the log line where they were said, in red overprint. Right of it, attachments open in dark voids: approach, agent cam, floor plan, each a pinned sheet with a header stamp, never a rounded card.",
+      "risk": "A printed-record world has to carry photographic content — Street View, agent screenshots, a full-bleed video. If the sheets read as decoration around the photos rather than the record they are pinned to, it becomes costume.",
+      "raised": [
+        {
+          "from": "challenger-monochrome-marketing",
+          "raise": "Accent economy: red and hi-vis yellow appear ONLY where incident state changes — never as decoration, never as a section colour. If a colour is not reporting a fact, it comes out."
+        },
+        {
+          "from": "challenger-variable-specimen",
+          "raise": "Two scales, no middle: incident-critical values (address, victim location, stage) enormous; everything else at log size. Nothing in between, so the screen ranks itself at four metres."
+        },
+        {
+          "from": "challenger-drawcord-cape",
+          "raise": "The phase-1 to phase-2 change is one authored transformation of the whole console, not a route swap: the panels visibly draw down and gather into the corner menu as the video takes the screen."
+        },
+        {
+          "from": "challenger-cloud-quarry",
+          "raise": "Regions are separated by deep dark voids, not by card chrome or borders — which kills the identical-card-grid reflex outright."
+        }
+      ]
+    },
+    {
+      "id": "model-pick",
+      "label": "The Approach Plate",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "Jeppesen instrument approach charts",
+      "thesis": "A plate is how you arrive somewhere you have never seen, at night, in zero visibility — which is literally this product. Plan view above, profile view below, minimums box bottom-left: the console splits the same way into approach, interior, and the go/no-go facts.",
+      "viewport": "Dense monochrome chart on black. The building sits in a plan view with the approach vector drawn to the front door; a profile band under it carries storeys and entry level; a boxed minimums panel bottom-left holds victim, hazards, route. Every number in a ruled cell with a keyed legend.",
+      "palette": ["#000000", "#e9e9e4", "#00a3e0", "#c8102e"],
+      "materials": ["chart line weights", "keyed symbology", "ruled fact boxes"],
+      "risk": "This is where most careful runs in this category land — a dark technical chart for an emergency tool is the obvious strong answer, and the one a judge is most likely to have seen before."
+    },
+    {
+      "id": "challenger-seven-segment",
+      "label": "Seven-Segment Panel",
+      "verdict": "competitive",
+      "lineage": "the seven-segment family: alarm clocks, price totems, scoreboards, fire alarm panels",
+      "thesis": "A rigid cell mask where unlit segments are designed too. Pending stages render as ghost cells, done stages ignite — nothing slides, everything swaps instantly.",
+      "palette": ["#0a0a0a", "#ff2d10", "#ffb300", "#2a2a2a"],
+      "materials": ["LED segments", "ghost cells", "matte black mask"],
+      "viewport": "The console as a fixed mask of cells that never reflow; stage status is a lit or ghosted row, and the unset-clock blink is the error state.",
+      "case": "Wins audience identification outright — appliance dashboards and fire alarm panels are this exact language — and 'unlit segments are designed too' is a native answer to the hardest constraint here: every panel must render a truthful pending state without its event ever arriving. Loses product clarity: a segment mask cannot host Street View, agent screenshots or a full-bleed video without becoming a frame around photos it does not own.",
+      "risk": "Reads as retro novelty the moment the mask bends for photographic content.",
+      "board": "https://impeccable.style/worlds/cards/signals-instruments-seven-segment-alarm-clock.webp",
+      "hero": "https://impeccable.style/worlds/cards/signals-instruments-seven-segment-alarm-clock-hero.webp"
+    },
+    {
+      "id": "challenger-timetable-rack",
+      "label": "Timetable Slide Rack",
+      "verdict": "competitive",
+      "lineage": "1971 pocket airline timetable on a lit goldenrod bed",
+      "thesis": "One single type size for the entire console — rank carried by weight, case, reversal and rule instead of scale. Slides rake across a lit bed; state is a mark in a fixed cell.",
+      "palette": ["#f0c419", "#1a1a1a", "#f5f2e8", "#d2331f"],
+      "materials": ["tinted glass slides", "lit goldenrod bed", "printed rules"],
+      "viewport": "One continuous raked rack of incident slides, a tick rail showing position and extent, one element per screen reversed to an opaque plate.",
+      "case": "Holds audience identification — the printed operational timetable is a first cousin of the fire control run sheet, and its one-size discipline is genuinely how these documents work. Loses product clarity on this surface: an 11-degree rake fights a full-bleed video phase, and single-size hierarchy is a real risk on a screen judged at four metres where the room must see the critical value instantly.",
+      "risk": "The rake becomes decoration the moment content is photographic.",
+      "board": "https://impeccable.style/worlds/cards/rw-timetable-slide-rack.webp"
+    },
+    {
+      "id": "challenger-monochrome-marketing",
+      "label": "Monochrome Product Marketing",
+      "verdict": "declined",
+      "lineage": "near-black on near-white software marketing with one restrained accent",
+      "palette": ["#111111", "#fafafa", "#3355ff"],
+      "materials": ["neutral scale", "framed screenshots"],
+      "case": "Fuses poorly: claim-and-proof topology has nothing to say about a live incident, and a dispatch operator does not identify with a product page.",
+      "kept": "Accent economy — one accent used four times on a whole surface.",
+      "board": "https://impeccable.style/worlds/cards/digital-design-canon-monochrome-product-marketing.webp"
+    },
+    {
+      "id": "challenger-variable-specimen",
+      "label": "Variable Font Specimen",
+      "verdict": "declined",
+      "lineage": "interactive type specimen with live axis sliders",
+      "palette": ["#fdfdfd", "#0a0a0a", "#ff4d00"],
+      "materials": ["giant letterforms", "mono readouts"],
+      "case": "Fuses poorly: an axis/glyph/size topology maps to nothing in an incident, and audience identification is zero.",
+      "kept": "Hierarchy by scale contrast alone — enormous against tiny, no middle sizes.",
+      "board": "https://impeccable.style/worlds/cards/variable-font-specimen.webp"
+    },
+    {
+      "id": "challenger-drawcord-cape",
+      "label": "Drawcord Cape",
+      "verdict": "declined",
+      "lineage": "silk cape with hidden drawcord channels",
+      "palette": ["#e8e2d5", "#5c5348"],
+      "materials": ["silk", "cord channels"],
+      "case": "Fuses poorly: no dispatch audience identification and no operational grammar, though one pull turning a flat plane into volume does echo floor plan into 3D.",
+      "kept": "A single authored transformation that reorganizes the whole surface.",
+      "board": "https://impeccable.style/worlds/cards/textiles-weave-drape-fashion-drawcord-transforming-cape.webp"
+    },
+    {
+      "id": "challenger-cloud-quarry",
+      "label": "Cloud Quarry",
+      "verdict": "declined",
+      "lineage": "cut blocks of weather assembled into temporary buildings",
+      "palette": ["#f2f5f8", "#3d7fbf", "#6b7280"],
+      "materials": ["cumulus mass", "sky voids"],
+      "case": "Fuses poorly on both axes: surreal construction has no claim on an emergency record and would actively undermine trust in the data.",
+      "kept": "Sections separated by deep voids rather than borders.",
+      "board": "https://impeccable.style/worlds/cards/dream-surreal-impossible-worlds-cloud-quarry.webp"
+    }
+  ],
+  "reroll": { "registers": ["safer", "bolder"] },
+  "canon": true,
+  "canonCard": {
+    "label": "The category standard",
+    "thesis": "The mission-control dashboard: dark slate ground, equal glowing panels in a grid, cyan and red status pills, a map tile top-left. Executed impeccably.",
+    "palette": ["#0f172a", "#e2e8f0", "#22d3ee", "#ef4444"],
+    "materials": ["slate panels", "status pills", "glow edges"],
+    "viewport": "A grid of equal-weight cards, each with an icon header and a status chip, over a dark slate ground.",
+    "risk": "Indistinguishable from every command-centre demo the judges will see today."
+  },
+  "steer": true
+}
