@@ -109,7 +109,10 @@ def build_payload(route: Route, graph: RoomGraph, artifacts: Artifacts, *,
                   approach: Approach | None = None,
                   hazards: list[str] | None = None,
                   building_description: str = "",
-                  seconds_per_leg: int | None = None) -> dict[str, Any]:
+                  seconds_per_leg: int | None = None,
+                  extend: bool = True,
+                  fire_room: str | None = None,
+                  leg_prompts: list[str] | None = None) -> dict[str, Any]:
     """Route + room graph + listing photos -> Worker request.
 
     Rooms with no photograph are dropped rather than guessed at: every leg
@@ -127,6 +130,22 @@ def build_payload(route: Route, graph: RoomGraph, artifacts: Artifacts, *,
         console can say "3 of 5 rooms" instead of implying a complete tour.
     """
     rooms = {room["id"]: room for room in graph.get("rooms", [])}
+
+    # Floor plans label two upstairs rooms "BEDROOM" and leave it at that. A
+    # walk that reads "Bedroom → Bedroom" tells a crew nothing, so append the
+    # id's distinguishing suffix when a name is not unique.
+    name_counts: dict[str, int] = {}
+    for room in rooms.values():
+        name_counts[room.get("name", "").lower()] = name_counts.get(room.get("name", "").lower(), 0) + 1
+
+    def display(room_id: str) -> str:
+        room = rooms.get(room_id, {})
+        name = room.get("name", room_id).title()
+        if name_counts.get(room.get("name", "").lower(), 0) > 1:
+            suffix = room_id.rsplit("-", 1)[-1]
+            if suffix and suffix != room_id:
+                name = f"{name} {suffix}"
+        return name
 
     photo_map = graph.get("photo_room_map", {}) or {}
     photo_by_room: dict[str, str] = {}
@@ -148,20 +167,52 @@ def build_payload(route: Route, graph: RoomGraph, artifacts: Artifacts, *,
                         "floor": 0})
         photos["_street"] = _as_public_image(street)
 
-    for room_id in route_rooms:
+    def add(room_id: str) -> None:
         if room_id not in photo_by_room:
-            continue
-        if ordered and ordered[-1]["room_id"] == room_id:
-            continue
+            return
+        if any(o["room_id"] == room_id for o in ordered):
+            return
         room = rooms.get(room_id, {})
         ordered.append({
             "room_id": room_id,
-            "name": room.get("name", room_id).title(),
+            "name": display(room_id),
             "floor": room.get("floor", 0),
         })
         photos[room_id] = _as_public_image(photo_by_room[room_id])
 
+    for room_id in route_rooms:
+        add(room_id)
+
+    # The route is the shortest path to the casualty, so it deliberately skips
+    # rooms — but a crew still has to know what is behind those doors, and we
+    # have paid for the photographs. Extend the walk through the remaining
+    # photographed rooms, nearest-first by adjacency so the tour still moves
+    # like someone walking rather than teleporting. The fire room goes last,
+    # because that is the only leg allowed to show flames.
+    if extend:
+        adjacency: dict[str, set[str]] = {r["id"]: set() for r in graph.get("rooms", [])}
+        for a, b in graph.get("adjacency", []):
+            adjacency.setdefault(a, set()).add(b)
+            adjacency.setdefault(b, set()).add(a)
+
+        remaining = {r for r in photo_by_room
+                     if not any(o["room_id"] == r for o in ordered)}
+        remaining.discard(fire_room)
+
+        while remaining:
+            current = ordered[-1]["room_id"] if ordered else None
+            neighbours = adjacency.get(current, set()) & remaining
+            # Prefer a neighbour of where we are; otherwise take any remaining
+            # room, which reads as "and also, elsewhere in the building".
+            nxt = sorted(neighbours)[0] if neighbours else sorted(remaining)[0]
+            remaining.discard(nxt)
+            add(nxt)
+
+        if fire_room and fire_room in photo_by_room:
+            add(fire_room)
+
     covered = [r["room_id"] for r in ordered if r["room_id"] != "_street"]
+    off_route = [r for r in covered if r not in route_rooms]
     payload: dict[str, Any] = {
         "address": artifacts.get("address", ""),
         "building_description": building_description,
@@ -175,8 +226,12 @@ def build_payload(route: Route, graph: RoomGraph, artifacts: Artifacts, *,
             "missing": [rooms.get(r, {}).get("name", r) for r in route_rooms
                         if r not in photo_by_room],
             "opens_on_street_view": bool(street),
+            "extra_rooms_shown": off_route,
+            "photographed_total": len(photo_by_room),
         },
     }
+    if leg_prompts:
+        payload["leg_prompts"] = leg_prompts
     if seconds_per_leg is not None:
         payload["seconds_per_leg"] = seconds_per_leg
     return payload

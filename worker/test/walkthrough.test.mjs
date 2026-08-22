@@ -78,10 +78,20 @@ test("the final leg ends facing the seat of the fire", () => {
   assert.doesNotMatch(legs[0].prompt, /seat of the fire/);
 });
 
-test("the prompt forbids inventing layout", () => {
+test("the prompt forbids inventing layout and states the house is empty", () => {
   const [leg] = buildLegs(REQUEST);
   assert.match(leg.prompt, /Keep the room layout exactly as shown/);
-  assert.match(leg.prompt, /No people/);
+  // Positive framing, not "no people" — the negative phrasing put a
+  // firefighter in our first real render.
+  assert.match(leg.prompt, /completely deserted/);
+  assert.match(leg.prompt, /no firefighters/i);
+});
+
+test("authored prompts override the template, per leg", () => {
+  const legs = buildLegs({ ...REQUEST, leg_prompts: ["DIRECTED SHOT ONE"] });
+  assert.equal(legs[0].prompt, "DIRECTED SHOT ONE");
+  // leg 1 has no authored prompt, so it falls back to the template
+  assert.match(legs[1].prompt, /helmet-camera/);
 });
 
 test("duration is clamped to the model's 3-10s range", () => {

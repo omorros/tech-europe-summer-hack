@@ -39,6 +39,9 @@ export interface WalkthroughRequest {
   hazards?: string[];
   /** Seconds per leg, 3-10 (Kling O1 allows this range). */
   seconds_per_leg?: number;
+  /** Prompts authored upstream by a model that has seen the floor plan.
+   *  Indexed by leg; anything missing falls back to the template below. */
+  leg_prompts?: string[];
 }
 
 export interface Leg {
@@ -107,9 +110,16 @@ export function legPrompt(
     parts.push(`The building is a ${request.building_description}.`);
   }
 
+  // Kling O1 has no negative_prompt field, so exclusions live in the prompt.
+  // Saying the house IS deserted suppresses figures far better than "no
+  // people", which names people and tends to summon them — our first real
+  // render put a firefighter in the hallway despite that phrasing.
   parts.push(
-    "Handheld forward motion at walking pace, wide angle. " +
-      "No people, no text, no captions. Keep the room layout exactly as shown in the two frames.",
+    "The house is completely deserted: no people, no firefighters, no figures " +
+      "or silhouettes anywhere in frame. Nothing moves except the camera. " +
+      "Handheld forward motion at walking pace, wide angle, no cuts. " +
+      "No text, captions or watermarks. " +
+      "Keep the room layout exactly as shown in the two frames.",
   );
 
   return parts.join(" ");
@@ -139,6 +149,7 @@ export function buildLegs(request: WalkthroughRequest): Leg[] {
       );
     }
     const isFinal = i === route.length - 2;
+    const authored = request.leg_prompts?.[i];
     legs.push({
       index: i,
       from: displayName(from),
@@ -146,7 +157,7 @@ export function buildLegs(request: WalkthroughRequest): Leg[] {
       from_room_id: from.room_id,
       to_room_id: to.room_id,
       label: `${displayName(from)} → ${displayName(to)}`,
-      prompt: legPrompt(from, to, request, isFinal),
+      prompt: authored || legPrompt(from, to, request, isFinal),
       start_image_url: start,
       end_image_url: photoFor(to),
       duration: seconds,
