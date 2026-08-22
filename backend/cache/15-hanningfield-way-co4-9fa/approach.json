@@ -1,0 +1,42 @@
+{
+  "lat": 51.91620589999999,
+  "lng": 0.9206660000000001,
+  "streetview": [
+    {
+      "heading": 27.7,
+      "url": "/static/approach/15-hanningfield-way-co4-9fa-1787423172-sv-0.jpg"
+    },
+    {
+      "heading": 62.7,
+      "url": "/static/approach/15-hanningfield-way-co4-9fa-1787423172-sv-1.jpg"
+    },
+    {
+      "heading": 97.7,
+      "url": "/static/approach/15-hanningfield-way-co4-9fa-1787423172-sv-2.jpg"
+    }
+  ],
+  "satellite_url": "/static/approach/15-hanningfield-way-co4-9fa-1787423172-satellite.jpg",
+  "coverage": true,
+  "building_type": "block of flats (low-rise)",
+  "storeys": 2,
+  "front_door": {
+    "side": "not visible from road",
+    "description": "No individual entrance visible from the street-side images; doors appear to be within the inner courtyard/paths beyond the carports."
+  },
+  "access_notes": [
+    "Approach is via a narrow driveway between two opposing brick carport structures with hip roofs and support posts.",
+    "Private/residents parking signage present; blue P/disabled parking signs on carport posts.",
+    "Low brick walls and pillars define the entrance to the courtyard.",
+    "No hydrant marker/standpipe plate visible at the entrance in the provided views.",
+    "Pavement level access at the driveway; a small stepped pedestrian path with metal handrail seen to the right of the carport."
+  ],
+  "obstacles": [
+    "Carport roofs with support posts close to the driveway edges (width restricted).",
+    "Parked vehicles in the carports and courtyard.",
+    "Wheelie bin by the right-hand carport wall.",
+    "Low brick walls/pillars at the entrance."
+  ],
+  "rear_access": true,
+  "rear_access_note": "An internal parking courtyard and pedestrian paths are visible beyond the carports (Street View and satellite), suggesting access around the rear/sides of the blocks.",
+  "parking": "Kerbside on Hanningfield Way near the entrance, or on the small paved apron immediately before the carport entrance; additional parking exists inside the courtyard beyond the carports (access via the narrow gap)."
+}

@@ -42,6 +42,10 @@ DEFAULT_ADDRESS = "22 Kellett Road, London SW2 1EB"
 # alone. It drives a real browser; a slow search must not hold the screen.
 AGENT_TIMEOUT = float(os.environ.get("LANTERN_AGENT_TIMEOUT", "150"))
 
+# One unbroken street-to-fire clip, or a leg per hop through the house.
+# Per-hop is the default: it is the only mode that uses the listing's rooms.
+WALK_CONTINUOUS = os.environ.get("LANTERN_WALK_CONTINUOUS", "0") == "1"
+
 AGENT_STUB_STEPS = (
     ("navigate", "Opening the sold-prices search"),
     ("type", "Entering the postcode"),
@@ -349,9 +353,12 @@ class Orchestrator:
         if not self._alive(generation):
             return
 
-        # Something real on the screen, now, from the street alone.
+        # Something real on the screen, now, from the street alone. The walk
+        # deliberately does NOT start here: the street-only render takes two
+        # minutes and would hold the slot, so a property that does have a
+        # listing would get an approach clip instead of the walk through its
+        # own rooms. Decide once the agent has answered.
         await self._try_briefing()
-        self._start_walkthrough(generation)
 
         try:
             await asyncio.wait_for(asyncio.shield(agent), timeout=AGENT_TIMEOUT)
@@ -359,19 +366,26 @@ class Orchestrator:
             bus.emit("status", {"stage": "agent", "state": "error",
                                 "message": f"No listing after {AGENT_TIMEOUT:.0f}s - "
                                            "briefing from the street only"})
+            self._start_walkthrough(generation)
             return
-        if not self._alive(generation) or not self.artifacts:
+        if not self._alive(generation):
+            return
+        if not self.artifacts:
+            # No listing for this property: the street is all there is.
+            self._start_walkthrough(generation)
             return
 
         if not await self._rooms_job(generation, address):
+            self._start_walkthrough(generation)
             return
 
         await self._scene_job(generation)
         await self._try_route()
         if self._alive(generation):
-            # A route changes the card and the walk: both are worth redoing.
-            self._walk_started = False
             await self._try_briefing(force=True)
+            # Now there is a floor plan and a route, so the walk can go inside
+            # the house instead of stopping at the front door.
+            self._start_walkthrough(generation)
 
     @staticmethod
     def _approach_images_present(approach: dict) -> bool:
@@ -542,7 +556,10 @@ class Orchestrator:
                 bus.emit("briefing.ready", briefing)
             self.briefing = briefing
             bus.emit("status", {"stage": "briefing", "state": "done", "message": "Crew card ready"})
-            self._start_walkthrough(generation)
+            # _run_lanes decides when to walk: the first card is written from
+            # the street alone, and starting a render there would spend two
+            # minutes on an approach clip for a house we are about to get a
+            # floor plan for.
 
     # ------------------------------------------------------------ walkthrough
 
@@ -607,11 +624,18 @@ class Orchestrator:
         payload = walkthrough.build_payload(
             self.route, self.graph, self.artifacts,
             approach=self.approach, hazards=hazards, fire_room=fire_room,
-            continuous=True,
-            # Kling tops out at 10s of output, so ask for all of it: the walk
-            # is one continuous take and the video page loops it, so the
-            # longest clip the model will make is the one we want.
-            seconds_per_leg=int(os.environ.get("LANTERN_WALK_SECONDS", "10")),
+            # Per-hop, not one continuous take. A single clip could only be
+            # street-to-fire and had to skip every room it could not open on,
+            # so the listing's photographs went unused. Per-hop turns the walk
+            # into: in from the street, through the route, then on through
+            # every remaining photographed room nearest-first, fire room last.
+            # That is build_payload's `extend` path, which one-take disabled.
+            continuous=WALK_CONTINUOUS,
+            extend=True,
+            # Each hop is its own clip and they play back to back, so the
+            # length that matters is the total. Shorter legs keep the render
+            # inside a demo's patience and the spend inside the Worker's cap.
+            seconds_per_leg=int(os.environ.get("LANTERN_LEG_SECONDS", "5")),
             building_description=f"{approach.get('building_type', 'house')}, "
                                  f"{approach.get('storeys', '')} storeys".strip(", "),
         )

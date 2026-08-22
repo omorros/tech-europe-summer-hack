@@ -1,0 +1,14 @@
+{
+  "legs": [
+    {
+      "index": 0,
+      "label": "Approach from the street",
+      "from_room_id": "_street",
+      "to_room_id": "_street",
+      "narration": "Approach from the street.",
+      "status": "COMPLETED",
+      "video_url": "https://v3b.fal.media/files/b/0aa76468/6YUqjZRFw52WpICKi_2F-_output.mp4",
+      "error": null
+    }
+  ]
+}
