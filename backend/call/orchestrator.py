@@ -10,11 +10,12 @@ from __future__ import annotations
 import asyncio
 import json
 import uuid
+from collections import deque
 from pathlib import Path
 from typing import Any
 
 from building import build_room_graph, find_approach, find_property, reconstruct
-from building.config import CACHE_DIR
+from building.config import CACHE_DIR, STATIC_DIR
 from building.golden import load_cached, save_cached, slugify
 from building.reconstruct import set_address
 from intelligence import make_briefing, on_transcript, plan_route
@@ -84,6 +85,12 @@ class Orchestrator:
         self.call_id: str | None = None
         self.address: str | None = None
         self.entities: list[dict] = []
+        # The handset records in fixed-length chunks, so one spoken sentence
+        # can arrive as two fragments: "we're at 22 Kellett Road" then "London
+        # SW2 1EB". The street pattern needs both in the same string, so
+        # extraction runs over a short rolling window while the record still
+        # prints each fragment as it was said.
+        self._recent_caller: deque[str] = deque(maxlen=3)
         self.approach: dict | None = None
         self.artifacts: dict | None = None
         self.graph: dict | None = None
@@ -121,6 +128,7 @@ class Orchestrator:
         self._ended = False
         self._brief_at = -1
         reset_extractor()
+        self._recent_caller.clear()
         bus.clear_recent()
         return self._generation
 
@@ -197,7 +205,15 @@ class Orchestrator:
             "speaker": speaker,
         }
         bus.emit("transcript.fragment", fragment)
-        fired = await on_transcript(fragment)
+
+        extract_text = text
+        if speaker == "caller":
+            extract_text = " ".join([*self._recent_caller, text]).strip()
+            if is_final:
+                self._recent_caller.append(text)
+        # The record gets the fragment; the extractor gets the window. The
+        # dedupe in extractor._Dedupe stops the overlap re-firing entities.
+        fired = await on_transcript({**fragment, "text": extract_text})
         if not self._alive(generation):
             return fired
         self.entities.extend(fired)
@@ -271,9 +287,28 @@ class Orchestrator:
         if self._alive(generation):
             await self._try_briefing()
 
+    @staticmethod
+    def _approach_images_present(approach: dict) -> bool:
+        """Does the cached approach still have its pictures on this machine?
+
+        `backend/.gitignore` excludes static/approach/ as per-run noise, so a
+        fresh clone has approach.json pointing at files that do not exist. The
+        cache then looks like a hit and the console shows the headline panel as
+        a row of 404s. Treat a cache with no images as a miss and re-fetch.
+        """
+        served = [frame.get("url") for frame in approach.get("streetview") or []]
+        served.append(approach.get("satellite_url"))
+        names = [url.split("/")[-1] for url in served if url]
+        if not names:
+            return False
+        return all((STATIC_DIR / "approach" / name).exists() for name in names)
+
     async def _approach_job(self, generation: int, address: str) -> None:
         bus.emit("status", {"stage": "approach", "state": "running", "message": "Reading the street"})
         cached = load_cached(address, "approach")
+        if cached and not self._approach_images_present(cached):
+            print("[approach] cached JSON points at images not on disk; re-fetching")
+            cached = None
         if cached:
             self.approach = cached
             bus.emit("approach.ready", cached)

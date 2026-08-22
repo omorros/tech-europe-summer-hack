@@ -4,40 +4,40 @@
   "streetview": [
     {
       "heading": 60.6,
-      "url": "/static/approach/22-kellett-road-london-sw2-1eb-1787396203-sv-0.jpg"
+      "url": "/static/approach/22-kellett-road-london-sw2-1eb-1787416782-sv-0.jpg"
     },
     {
       "heading": 95.6,
-      "url": "/static/approach/22-kellett-road-london-sw2-1eb-1787396203-sv-1.jpg"
+      "url": "/static/approach/22-kellett-road-london-sw2-1eb-1787416782-sv-1.jpg"
     },
     {
       "heading": 130.6,
-      "url": "/static/approach/22-kellett-road-london-sw2-1eb-1787396203-sv-2.jpg"
+      "url": "/static/approach/22-kellett-road-london-sw2-1eb-1787416782-sv-2.jpg"
     }
   ],
-  "satellite_url": "/static/approach/22-kellett-road-london-sw2-1eb-1787396203-satellite.jpg",
+  "satellite_url": "/static/approach/22-kellett-road-london-sw2-1eb-1787416782-satellite.jpg",
   "coverage": true,
-  "building_type": "terraced",
-  "storeys": 3,
+  "building_type": "Terraced house (Victorian)",
+  "storeys": 4,
   "front_door": {
-    "side": "left",
-    "description": "Recessed single-leaf door beneath an ornate stucco arch/porch; light-colored; short step up from small front garden."
+    "side": "right",
+    "description": "Single-leaf door recessed under ornate stucco/columned porch; reached by several steps up from pavement; dark-coloured door. There is also a sunken lightwell/steps down beside the porch to a lower-ground level."
   },
   "access_notes": [
-    "Small, narrow front garden with low brick wall and gate opening.",
-    "Short path from pavement; 1\u20132 steps to threshold.",
-    "Street trees along pavement.",
-    "Cars parked on both sides of Kellett Road reduce carriageway width.",
-    "No hydrant marker or standpipe visible in the street-view images."
+    "Low brick front wall with narrow pedestrian opening from pavement",
+    "Short front path with steps up to raised ground-floor entrance",
+    "Sunken basement/lightwell immediately in front/alongside the fa\u00e7ade",
+    "Pavement trees and a lamp post along kerb near the frontage",
+    "No hydrant marker or street standpipe sign visible"
   ],
   "obstacles": [
-    "Low brick wall at frontage",
-    "Wheelie bins in the small front garden",
-    "Street trees at kerb",
-    "Parked vehicles at kerbside",
-    "Occasional bicycles locked to front boundary/railings nearby"
+    "Wheelie bins in the front garden area",
+    "Low wall/railings at the boundary",
+    "Steps up to door and lightwell drop beside the entrance",
+    "Parked cars along both kerbs",
+    "Street tree close to the frontage"
   ],
   "rear_access": false,
-  "rear_access_note": "Mid-terrace property with enclosed rear garden backing onto other gardens; no alley or side passage visible in satellite view.",
-  "parking": "On-street kerbside parking on Kellett Road; appliance could park at the kerb outside or opposite the property if space is available."
+  "rear_access_note": "From satellite view the property is mid-terrace with long enclosed rear gardens backing onto other gardens; no rear alley or side passage visible.",
+  "parking": "Kerbside on Kellett Road outside/near the address in residents\u2019 parking bays; single carriageway residential street with parking on both sides."
 }
